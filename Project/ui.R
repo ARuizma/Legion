@@ -1,14 +1,3 @@
-########################################
-#
-# nplr App deployed on Synapse
-#
-########################################
-# Deploy on shiny.io
-# Sys.setlocale(locale="en_US.UTF-8")
-# deployApp(account="fredcommo")
-# old: ${iframe?site=https%3A%2F%2Ffcommo%2Dshinyapps%2Eshinyapps%2Eio%2FnplrApp%2F&height=2000}
-# new: ${iframe?site=https%3A%2F%2Ffredcommo%2Eshinyapps%2Eio%2FnplrApp%2F&height=2000}
-# https://fredcommo.shinyapps.io/nplrApp/
 
 shinyUI(
  fluidPage(
@@ -17,50 +6,18 @@ shinyUI(
   # TITLE
   
   headerPanel(
-   div(class="col-sm-12 lato", id="pageTitle",
-       tags$span('curve',tags$strong('Fitter')),
-       tags$span(class="small", ' a free Drug',tags$strong('Response'),'Analysis App.')
-   ),
-   "Curve Fitter"
+   
+   strong("CUFITT")
   ),
   
   ########################################
   # SIDEBAR PANEL
   sidebarPanel(
    
-   ########################################
-   # IMPORT GOOGLE FONTS
-   
-   tags$link(
-    rel = "stylesheet", 
-    href="https://fonts.googleapis.com/css?family=Lato:400,100,100italic,300,300italic,400italic,700,700italic,900,900italic",
-    type="text/css"
-   ),
-   
-   tags$link(
-    rel = "stylesheet", 
-    href="https://fonts.googleapis.com/css?family=Calligraffitti",
-    type="text/css"
-   ),
-   
-   ########################################
-   # LINK TO NPLR
-   h5(
-    em(
-     a("...using R package 'nplr'",
-       href="http://cran.r-project.org/web/packages/nplr/index.html",
-       target="_blank")
-    ),
-    align="right"
-   ),
    
    ########################################
    # CHOOSE FILE
-   withTags(
-    div(class="col-sm-12 section-title",
-        h3("Choose a file", em(id="supportedFiles", "(.csv, .tsv, .txt)"))
-    )
-   ),
+   
    withTags(
     div(
      class="row",
@@ -117,6 +74,18 @@ shinyUI(
    # HIGHLIGHT
    uiOutput('modelNames'),
    
+   #SELECTBOX####
+   withTags(
+    div(class='col-sm-12',
+        div(class = "row",
+            div(class="col-xs-12 radioText", "Select Data"),
+            div(class="col-xs-12 btn-input",
+                div(class="col-xs-4", selectInput(inputId="selectData", label = " ", choices = "Testing"))
+                )
+            )
+    )
+   ),
+  
    # SAVE OPTIONS
    withTags(
     div(class='col-sm-12',
@@ -150,20 +119,6 @@ shinyUI(
         div(class="row",
             div(class='col-xs-6', textInput("xlabel", 'x-axis name', "Log10(Conc.)")),
             div(class='col-xs-6', textInput("ylabel", 'y-axis name', 'Response (Vs. control)'))
-        )
-    )
-   ),
-   
-   ########################################
-   # DOWNLOAD BUTTONS
-   withTags(div(class="col-sm-12 section-title", h3("Save"))),
-   withTags(
-    div(class="row",
-        div(class="col-sm-12", id="saving-subtitle", h4("Filename (without extension)")),
-        div(class="col-sm-12", id="fileName", textInput("fname", '', 'myResults')),
-        div(class='col-sm-12',
-            div(class='col-sm-6 save-btn', downloadButton("downloadPLot", class="btn-lg btn-success", "Save Plot")),
-            div(class='col-sm-6 save-btn', downloadButton("downloadData", class="btn-lg btn-success", "Save Results"))
         )
     )
    )
@@ -229,36 +184,11 @@ shinyUI(
              # 		)
              # 	)
              
-    ), # tabpanel Curve
+    ) # tabpanel Curve
     
-    tabPanel("Summary",
-             withTags(					
-              div(class = "col-sm-12",
-                  h3(id="model-summary", "Model(s) summary", align="center"),
-                  tableOutput('summary')
-              )
-             )
-    ) # tabpanel summary
     
    ) #tabsetPanel
-  ), #main panel
-  ########################################
-  # Footer
-  withTags(
-   div(class="row",
-       div(class="col-sm-12 footer",
-           
-           span(class="calligraffitti", "DesignedBy"),
-           span(class="lato", "FredCommo"),
-           span(HTML("&copy;2016. ")),
-           span(id="email",
-                a("frederic.commo@gustaveroussy.fr",
-                  href="mailto:frederic.commo@gustaveroussy.fr?Subject=nplrApp",
-                  target="_top")
-           )
-           
-       )
-   )
+  )#main panel
   )
  )
-)
+  
