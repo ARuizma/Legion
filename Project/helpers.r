@@ -17,7 +17,7 @@
    cat("format not supported.\n")
    return(NULL)
   }
-  
+
   # Check whether ',' is used as decimal sep
   if(any(grepl(",", dat[,2])))
    dat[,2] <- as.numeric(as.character(gsub(",", ".", dat[,2])))
@@ -27,6 +27,26 @@
   dat <- dat[dat[,2]!=0,]
   return(split(dat, dat[,1]))
  }
+}
+
+.getHeaders <- function(filepath, h){
+  if (is.null(filepath)) {
+    return(NULL)
+  }
+  else{
+    dat <- try(read.delim(filepath, header=h, sep="\t"))
+    if(inherits(dat, "try-error") || ncol(dat)<3)
+      dat <- try(read.delim(filepath, header=h, sep=","))
+    if(inherits(dat, "try-error") || ncol(dat)<3)
+      dat <- try(read.delim(filepath, header=h, sep=";"))
+    if(inherits(dat, "try-error") || ncol(dat)<3)
+      dat <- try(read.delim(filepath, header=h, sep=" "))
+    if(inherits(dat, "try-error") || ncol(dat)<3){
+      cat("format not supported.\n")
+      return(NULL)
+    }
+    return(strsplit(names(dat), "t"))
+  }
 }
 
 ############################

@@ -11,8 +11,11 @@ shinyServer(function(input, output, session) {
  Input <- reactiveValues(data = matrix(),
                          cells = character()
  )
- observe({Input$data <- .getData(input$file1$datapath, input$header)
- Input$cells <- names(Input$data)
+ observe({
+   Input$data <- .getData(input$file1$datapath, input$header)
+   Input$cells <- names(Input$data)
+   browser()
+   updateSelectInput(session, "selectData", choices = .getHeaders(input$file1$datapath, input$header))
  })
  
  test <- reactive({
@@ -35,6 +38,7 @@ shinyServer(function(input, output, session) {
  checkFile <- reactive({
   if(is.null(input$file1$datapath))
    return(0)
+  
   return(1)
  })
  

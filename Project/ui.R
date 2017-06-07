@@ -1,4 +1,4 @@
-
+ 
 shinyUI(
  fluidPage(
   
@@ -80,11 +80,12 @@ shinyUI(
         div(class = "row",
             div(class="col-xs-12 radioText", "Select Data"),
             div(class="col-xs-12 btn-input",
-                div(class="col-xs-4", selectInput(inputId="selectData", label = " ", choices = "Testing"))
+                div(class="col-xs-4", selectInput(inputId="selectData", label = " ", choices = "emtpy..."))
                 )
             )
     )
    ),
+   
   
    # SAVE OPTIONS
    withTags(
