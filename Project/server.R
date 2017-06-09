@@ -14,18 +14,14 @@ shinyServer(function(input, output, session) {
  observe({
    Input$data <- .getData(input$file1$datapath, input$header)
    Input$cells <- names(Input$data)
-   #browser()
-   updateSelectInput(session, "selectData", choices = .getHeaders(input$file1$datapath, input$header), selected = 3)
- })
-
- dd<- reactive({
-  as.data.frame(Input$data, FUN=mean)
+   browser()
+   updateSelectInput(session, "selectData", choices = .getHeaders(input$file1$datapath, input$header))
  })
  
  test <- reactive({
-  if(is.null(dd))
+  if(is.null(Input$data))
    return(NULL)
-  models <- tapply(dd, function(tmp){
+  models <- lapply(Input$data, function(tmp){
    x <- tmp[,2]
    y <- tmp[,3]
    if(!is.numeric(x) || !is.numeric(y))
@@ -46,7 +42,6 @@ shinyServer(function(input, output, session) {
   return(1)
  })
  
- output$content<-renderTable(Input$data)
  
  output$checkFile <- renderText({ checkFile() })
  
@@ -65,14 +60,6 @@ shinyServer(function(input, output, session) {
     )
    )
   }
- })
- 
- #########Summary####
- output$summary <- renderTable({
-  models <- test()
-  if(is.null(models))
-   return(NULL)
-  buildSummary(models)
  })
  
  # Put all the input colors in a vector
@@ -109,5 +96,7 @@ shinyServer(function(input, output, session) {
   
  }, res=180, width=1033, height=875)
  
+ 
  session$onSessionEnded(function() { stopApp() })
+ 
 })
