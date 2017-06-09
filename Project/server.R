@@ -62,6 +62,15 @@ shinyServer(function(input, output, session) {
   }
  })
  
+ output$content<-renderTable(Input$data)
+ 
+ output$summary <- renderTable({
+  models <- test()
+  if(is.null(models))
+   return(NULL)
+  buildSummary(models)
+ })
+ 
  # Put all the input colors in a vector
  getColors <- reactive({
   models <- test()
