@@ -185,8 +185,25 @@ shinyUI(
              # 		)
              # 	)
              
-    ) # tabpanel Curve
+    ), # tabpanel Curve
+   
+     tabPanel("Summary",
+             withTags(					
+              div(class = "col-sm-12",
+                  h3(id="model-summary", "Model(s) summary", align="center"),
+                  tableOutput('summary')
+              )
+             )
+    ), 
     
+    tabPanel("Content",
+             withTags(
+              div(class = "col-sm-12",
+                  h3(id="content", "Data Content", align= "center"),
+                  tableOutput('content')
+              )
+             )
+    )
     
    ) #tabsetPanel
   )#main panel
