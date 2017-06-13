@@ -6,14 +6,18 @@ library(shinyjs)
 library(colourpicker)
 source("helpers.r")
 
+
 shinyServer(function(input, output, session) {
+
  
  Input <- reactiveValues(data = matrix(),
                          cells = character()
- )
+                         
+)
  observe({Input$data <- .getData(input$file1$datapath, input$header)
  Input$cells <- names(Input$data)
  })
+ 
  
  test <- reactive({
   if(is.null(Input$data))
@@ -58,6 +62,40 @@ shinyServer(function(input, output, session) {
   }
  })
  
+ #output$content<-renderPrint(paste(Input$data, "------------------------------------------"))
+ #output$content<-renderPrint({"------------------------------------------"})
+ m <- reactive({
+  data.frame(matrix(unlist(Input$data)))
+ })
+ output$content<-renderPrint(paste(table(Input$data)))
+ 
+ 
+ 
+ 
+ #observe({
+  #updateSelectInput(session, "inSelect", choices = names(Input$data))
+ #})
+ 
+ output$selectBox <- renderUI({
+  if(length(Input$data)<1)
+   return(strong ("WRONG"))
+  else{
+   withTags(
+    div(class="row",
+       selectInput("selectdata", "Select Data", choices = names(Input$data), FALSE, FALSE, TRUE))
+   )
+  }
+  print(typeof(Input$data))
+ })
+            
+ #########Summary####
+ output$summary <- renderTable({
+  models <- test()
+  if(is.null(models))
+   return(NULL)
+  buildSummary(models)
+ })
+ 
  # Put all the input colors in a vector
  getColors <- reactive({
   models <- test()
@@ -67,10 +105,8 @@ shinyServer(function(input, output, session) {
   })
   unlist(cols)
  })
- 
+
  output$plot <- renderPlot({
-  if(is.null(input$file1$datapath))
-   exampleInput()
   if(is.null(test()))
    return(NULL)
   
@@ -95,4 +131,7 @@ shinyServer(function(input, output, session) {
  
  session$onSessionEnded(function() { stopApp() })
  
+ 
 })
+
+

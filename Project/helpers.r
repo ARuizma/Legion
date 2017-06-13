@@ -1,77 +1,49 @@
 ############################
 # HELPERS
 ############################
+
 .getData <- function(filepath, h){
  if (is.null(filepath))
   return(NULL)
  
  else{
-  dat <- try(read.delim(filepath, header=h, sep="\t"))
-  if(inherits(dat, "try-error") || ncol(dat)<3)
-   dat <- try(read.delim(filepath, header=h, sep=","))
-  if(inherits(dat, "try-error") || ncol(dat)<3)
-   dat <- try(read.delim(filepath, header=h, sep=";"))
-  if(inherits(dat, "try-error") || ncol(dat)<3)
-   dat <- try(read.delim(filepath, header=h, sep=" "))
+  #dat <- try(read.delim(filepath, header=h, sep="\t"))
+  #if(inherits(dat, "try-error") || ncol(dat)<3)
+   dat <- try(read.csv(filepath, header=h, sep=","))
   if(inherits(dat, "try-error") || ncol(dat)<3){
+   #dat <- try(read.delim(filepath, header=h, sep=";"))
+  #if(inherits(dat, "try-error") || ncol(dat)<3)
+   #dat <- try(read.delim(filepath, header=h, sep=" "))
+  #if(inherits(dat, "try-error") || ncol(dat)<3){
    cat("format not supported.\n")
    return(NULL)
   }
   
-  # Check whether ',' is used as decimal sep
-  if(any(grepl(",", dat[,2])))
-   dat[,2] <- as.numeric(as.character(gsub(",", ".", dat[,2])))
-  if(any(grepl(",", dat[,3])))
-   dat[,3] <- as.numeric(as.character(gsub(",", ".", dat[,3])))
+   #Check whether ',' is used as decimal sep
+  #if(any(grepl(",", dat[,2])))
+   #dat[,2] <- as.numeric(as.character(gsub(",", ".", dat[,2])))
+  #if(any(grepl(",", dat[,3])))
+   #dat[,3] <- as.numeric(as.character(gsub(",", ".", dat[,3])))
   
-  dat <- dat[dat[,2]!=0,]
-  return(split(dat, dat[,1]))
+  
+  #dat <- dat[dat[,2]!=0,]
+  cat(dat)
+   return(dat)
+   #split(dat, dat[,1]))
  }
+ 
 }
 
-############################
-# HELPERS PLOT
-############################
-# .plot <- function(object, showAsLog,...){
-#     x <- getX(object)
-#     y <- getY(object)
-# 
-#     plot(x, y, type = "n", bty = "n", axes = FALSE, cex.axis = .85,
-#         ylim = range(min(c(y, 0), na.rm = TRUE), max(c(y, 1), na.rm = TRUE)+.1), ...)
-#     .addXaxis(x, showAsLog)
-#     .addYaxis(y)
-#     
-#     if(min(y, na.rm = TRUE) < 0)
-#         abline(h = 0, lty = 2)
-#     if(max(y, na.rm = TRUE) > 1)
-#         abline(h = 1, lty = 2)
-# }
+
 .addPolygon <- function(object){
  newx <- getXcurve(object)
  newy <- getYcurve(object)
- bounds <- nplr:::.confInt(getStdErr(object), getY(object), getFitValues(object), newy)
+ bounds <-confInt(getStdErr(object), getY(object), getFitValues(object), newy)
  xx <- c(newx, rev(newx))
  yy <- c(bounds$lo, rev(bounds$hi))
  polygon(xx, yy, border = NA, col = rgb(.8,.8,.8,.4))
 }
-# .addEstim <- function(object, showEstim, unit, B, conf.level){
-#     stdErr <- getStdErr(object)
-#     estim <- nplr:::.estimateRange(showEstim, stdErr, getPar(object)$params, B, object@useLog, conf.level)
-#     newx <- getXcurve(object)
-#     newy <- getYcurve(object)
-#     legend1 <- sprintf("IC%d : %s%s", showEstim*100, format(estim[2], scientific=TRUE, digits=2), unit)
-#     legend2 <- sprintf("[%s, %s]", format(estim[1], scientific=TRUE, digits=2), format(estim[3], scientific=TRUE, digits=2))
-#     legend(ifelse(newy[length(newy)]<newy[1], 'bottomleft', 'topleft'),
-#            legend = c(legend1, legend2), cex = 1, text.col = 'steelblue4', bty = 'n')
 
-# }
-# .addGOF <- function(object){
-#     gof <- format(getGoodness(object), digits=3, scientific = TRUE)
-#     newx <- getXcurve(object)
-#     newy <- getYcurve(object)
-#     legend(ifelse(newy[length(newy)]<newy[1], 'topright', 'bottomright'),
-#            legend = paste('Goodness of fit:', gof), bty = 'n', cex = 1)
-# }
 .addPoints <- function(object, pcol, pSize, ...){
  x <- getX(object)
  y <- getY(object)
@@ -83,6 +55,8 @@
  y <- getYcurve(object)
  lines(y ~ x, col=lcol, lwd=6*lWidth, ...)
 }
+
+#Standard Error
 .SE <- function(x, y){
  .len <- function(x){ sum(!is.na(x)) }
  n <- by(y, x, .len)
@@ -187,5 +161,53 @@
             item, col_i)
   out <- c(out, txt)
  }
+ out
+}
+
+#####Summary####
+buildSummary <- function(models){
+ pars <- lapply(models, function(model){
+  p <- getPar(model)
+  p <- unlist(p)
+  p[-1] <- format(p[-1], digits = 3, scientific = TRUE)
+  p
+ })
+ gof <- lapply(models, function(model) format(getGoodness(model), digits = 3, scientific = TRUE) )
+ auc <- lapply(models, function(model) signif(getAUC(model), 3) )
+ inflpt <- lapply(models, function(model){
+  infl <- as.numeric(getInflexion(model))
+  cbind.data.frame(
+   xInfl = format(infl[1], digits = 3),
+   yInfl = format(infl[2], digits = 3)
+  )
+ })
+ ic50 <- lapply(models, function(model){
+  estim <- getEstimates(model, .5)
+  interv <- sprintf("[%s | %s]",
+                    format(estim$x.025, digits=3, scientific = TRUE),
+                    format(estim$x.975, digits=3, scientific = TRUE)
+  )
+  cbind(resp = format(estim$y, digits = 2),
+        IC = format(estim$x, digits = 3, scientific = TRUE),
+        "[95%]" = interv)
+ })
+ nplrv <- as.character(packageVersion("nplr"))
+ nplrDate <- as.character(packageDescription("nplr")["Date"])
+ rv <- as.character(version["version.string"])
+ 
+ out <- cbind.data.frame(cellLine = names(models),
+                         do.call(rbind, pars),
+                         #GOF = do.call(c, gof),
+                         do.call(rbind, auc),
+                         do.call(rbind, inflpt),
+                         do.call(rbind, ic50),
+                         "date (Y-m-d)" = format(Sys.Date(), "%Y-%m-%d"),
+                         "nplr version" = sprintf("%s (%s)",nplrv, nplrDate),
+                         "R version" = gsub("R version ", "", rv)
+ )
+ 
+ rownames(out) <- sprintf("model-%s", seq_len(length(models)))
+ #Quito transponer matriz porque no aparece el nombre de los datos
+ #out <- as.data.frame(t(out))
  out
 }

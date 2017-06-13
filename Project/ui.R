@@ -7,7 +7,8 @@ shinyUI(
   
   headerPanel(
    
-   strong("CUFITT")
+   strong("Legion")
+   #h6("We are Legion, for we are many")
   ),
   
   ########################################
@@ -35,6 +36,7 @@ shinyUI(
      )
     )
    ),
+   
    
    ########################################
    # TRANSFORM
@@ -66,25 +68,23 @@ shinyUI(
     )
    ),
    
-   
    ########################################
    # Settings
    withTags(div(class="col-sm-12 section-title", h3("Visualize"))),
    
    # HIGHLIGHT
    uiOutput('modelNames'),
+   uiOutput('selectBox'),
    
-   #SELECTBOX####
-   withTags(
-    div(class='col-sm-12',
-        div(class = "row",
-            div(class="col-xs-12 radioText", "Select Data"),
-            div(class="col-xs-12 btn-input",
-                div(class="col-xs-4", selectInput(inputId="selectData", label = " ", choices = "Testing"))
-                )
-            )
-    )
-   ),
+   #withTags(
+    #div(class = 'col-sm-12',
+     #   div(class = "row",
+      #      div(class="col-xs-12 radioText", "Select data"),
+       #     div(class="col-xs-12", selectInput("inselect", "Select Data", choices = "Pending upload")
+        #    )
+        #)
+    #)
+   #),
   
    # SAVE OPTIONS
    withTags(
@@ -164,28 +164,45 @@ shinyUI(
              h6(verbatimTextOutput("checkFile"),
                 style="visibility: collapse; height: 0px;"),
              
-             conditionalPanel(
-              condition = "output.checkFile == '0'",
-              div(class="col-sm-12",
-                  uiOutput('message'),
-                  imageOutput("welcomeImage")
-              )
-             ),
+             #conditionalPanel(
+              #condition = "output.checkFile == '0'",
+              #div(class="col-sm-12",
+                  #uiOutput('message'),
+                  #imageOutput("welcomeImage")
+              #)
+             #),
              
              conditionalPanel(
               "output.checkFile == '1'",
               plotOutput("plot", width = "100%", height = "100%")
              )
              
-             # withTags(
-             # 	div(class='row',
-             # 		uiOutput('message'),
-             # 		div(class = "col-sm-12", plotOutput('plot'))
-             # 		)
-             # 	)
+              #withTags(
+              	#div(class='row',
+              		#uiOutput('message'),
+              		#div(class = "col-sm-12", plotOutput('plot'))
+              		#)
+              	#)
              
-    ) # tabpanel Curve
+    ), # tabpanel Curve
     
+    tabPanel("Summary",
+             withTags(					
+              div(class = "col-sm-12",
+                  h3(id="model-summary", "Model(s) summary", align="center"),
+                  tableOutput('summary')
+              )
+             )
+    ), 
+    
+    tabPanel("Content",
+             withTags(
+              div(class = "col-sm-12",
+                  h3(id="content", "Data Content", align= "center"),
+                  tableOutput('content')
+              )
+             )
+    )
     
    ) #tabsetPanel
   )#main panel
