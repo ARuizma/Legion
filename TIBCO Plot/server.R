@@ -4,8 +4,7 @@ library(shinyjs)
 library(colourpicker)
 library(nlstools)
 library(ggplot2)
-
-
+library(shinydashboard)
  
 server = function(input, output, session) {
  
@@ -14,11 +13,11 @@ server = function(input, output, session) {
   if(is.null(infile))
    return(NULL)
  
- df<- read.csv(infile$datapath, header=input$header, sep=input$sep, quote= input$quote)
+ df<- read.csv(infile$datapath, header=input$header, sep=input$sep, quote= input$quote, check.names = FALSE)
  
  observe({
-  updateSelectInput(session, 'xcol', choices = names(df), selected=names(df)[2])
-  updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
+  x <- updateSelectInput(session, 'xcol', choices = names(df), selected=names(df)[2])
+  y <- updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
  })
  
  return(df)
@@ -34,11 +33,14 @@ server = function(input, output, session) {
  
  output$plot <- renderPlot({
   
+  if(is.null(input$file1))
+     return(NULL)
+  
   x <- data()[, c(input$xcol, input$ycol)]
   switch(input$plot_scaletype,
          normal = plot(x),
          log =
-          plot(x, log = "xy", type = "l", main = "Curve Fitting")
+          plot(x, log = "xy", type = "p", main = "Curve Fitting")
   )
   
  })

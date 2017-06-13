@@ -1,80 +1,165 @@
 
+library(shiny)
+library(shinydashboard)
+
 shinyUI(
  
- fluidPage(
-  
+ dashboardPage( 
+ 
  #HeaderPanel####
   
-  headerPanel(
-   strong("Legion")
+  dashboardHeader(title = "Legion"),
    #h2("We are Legion, for we are many")
-  ),
   
  #SIDEBAR####
   
   
- sidebarPanel(fileInput('file1', 'Choose File with .csv format',
-                        accept=c('text/csv', 
-                                 'text/comma-separated-values, text/plain', 
-                                 '.csv')),
-              tags$br(),
-              checkboxInput('header', 'Header', TRUE),
-              radioButtons('sep', 'Separator',
-                           c(Comma=',',
-                             Semicolon=';',
-                             Tab='\t'),
-                           ','),
-              radioButtons('quote', 'Quote',
-                           c(None='',
-                             'Double Quote'='"',
-                             'Single Quote'="'"),
-                           '"'),
-              selectInput("plot_scaletype", "Scale type",
-                          c("normal" = "normal",
-                            "log" = "log"
-                          ),
-                          selected = "log",
-                          selectize = FALSE
-              ),
+  dashboardSidebar(
+  
+  sidebarMenu(
+   
+   menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),
+
+   menuItem("Content", tabName = "content", icon = icon("th")),
+      
+   menuItem("Summary", tabName = "summary", icon = icon("th")),
+  
+  #fileInput('file1', 'Choose File with .csv format',
+                        #accept=c('text/csv', 
+                        #         'text/comma-separated-values, text/plain', 
+                         #        '.csv'),
+              tags$br()
+              #checkboxInput('header', 'Header', TRUE)
+             # radioButtons('sep', 'Separator'
+              #             c(Comma=',',
+               #              Semicolon=';',
+                #             Tab='\t'),
+                 #          ','),
+              #radioButtons('quote', 'Quote',
+                           #c(None='',
+                            # 'Double Quote'='"',
+                             #'Single Quote'="'",
+                          # '"'),
+              #selectInput("plot_scaletype", "Scale type",
+               #           c("normal" = "normal",
+                #            "log" = "log"
+                 #         ),
+                  #        selected = "log",
+                   #       selectize = FALSE
+             # ),
               
-              selectInput('xcol', 'Select X variable', choices = "Pending Upload"),
+             # selectInput('xcol', 'Select X variable', choices = "Pending Upload"),
 
  
-              selectInput('ycol', 'Select Y variable', choices = "Pending Upload")
- ),
+              #selectInput('ycol', 'Select Y variable', choices = "Pending Upload")
+# ),
+)
+),
 
 
              
  #MainPanel####
  
- mainPanel(
-  tabsetPanel(
-   
-   tabPanel("Curve",
-            # Plot output
-             plotOutput('plot')
-   ),
+ dashboardBody(
+  tabItems(
   
-   tabPanel("Summary",
-            withTags(					
-             div(class = "col-sm-12",
-                 h3(id="model-summary", "Model(s) summary", align="center"),
-                 tableOutput('summary')
-             )
+  tabItem("dashboard",
+          fluidRow(
+          box(plotOutput("plot", height = 250)),
+          
+          box(
+           title = "Customize Data Output",
+           
+           box(
+            title = "Log",
+            selectInput("plot_scaletype", "Scale type",
+                        c("normal" = "normal",
+                          "log" = "log"
+                        ),
+                        selected = "log",
+                        selectize = FALSE
             )
-   ), 
-   
-   tabPanel("Content",
-            withTags(
-             div(class = "col-sm-12",
-                 h3(id="content", "Data Content", align= "center"),
-                 tableOutput('content')
-             )
+           ),
+           
+           box(
+            title = "Choose X axis",
+            selectInput('xcol', '', choices = "Pending Upload"
             )
-   )
- )
+           ),
+           
+           box(
+            title = "Choose Y axis",
+            selectInput('ycol', '', choices = "Pending Upload"
+            )
+           )
+          )
+          )
+  ),
+        
    
- )
-)
-)
+   #tabPanel("Curve",
+            # Plot output
+    #         plotOutput('plot')
+   #),
+  
+  tabItem("content",
+          fluidRow(
+           
+           box(
+            title = "Uploaded Data",
+            tableOutput('content')
+           ),
 
+           box(
+             title = "Customize Data Input",
+            
+             box(
+              title = "Upload File",
+              fileInput('file1', 'Choose File with .csv format',
+                        accept=c('text/csv', 
+                                 'text/comma-separated-values, text/plain', 
+                                '.csv')
+              )
+             ),
+             
+             box(
+              title = "",
+              checkboxInput('header', 'Headers', TRUE)
+             ),
+                      
+             box(
+              title = "Separation Type",
+              radioButtons('sep', "",
+                           c(Comma=',',
+                             Semicolon=';',
+                             Tab='\t'),
+                           ',')
+             )
+            )
+           )
+   ),
+             
+   tabItem("summary",
+           ("Data Summary")
+   )
+   #tabPanel("Summary",
+    #        withTags(					
+     #        div(class = "col-sm-12",
+      #           h3(id="model-summary", "Model(s) summary", align="center"),
+       #          tableOutput('summary')
+        #     )
+         #   )
+   #), 
+   
+  # tabPanel("Content",
+   #         withTags(
+    #         div(class = "col-sm-12",
+     #            h3(id="content", "Data Content", align= "center"),
+      #           tableOutput('content')
+       #      )
+        #    )
+   #)
+ )
+   
+ )
+))
