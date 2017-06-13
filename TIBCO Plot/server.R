@@ -27,20 +27,16 @@ server = function(input, output, session) {
  output$content<-renderTable({data()})
   
  
- #selectedData <- reactive({
-  #upfile[, c(input$xcol, input$ycol)]
- #})
- 
  output$plot <- renderPlot({
   
   if(is.null(input$file1))
      return(NULL)
   
-  x <- data()[, c(input$xcol, input$ycol)]
+  df <- data()[, c(input$xcol, input$ycol)]
   switch(input$plot_scaletype,
-         normal = plot(x),
+         normal = plot(df),
          log =
-          plot(x, log = "xy", type = "p", main = "Curve Fitting")
+          plot(df, log = "xy", type = "p", main = "Curve Fitting")
   )
   
  })
