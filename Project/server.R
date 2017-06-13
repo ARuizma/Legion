@@ -6,17 +6,27 @@ library(shinyjs)
 library(colourpicker)
 source("helpers.r")
 
+
 shinyServer(function(input, output, session) {
+
  
  Input <- reactiveValues(data = matrix(),
                          cells = character()
+<<<<<<< HEAD
  )
  observe({
    Input$data <- .getData(input$file1$datapath, input$header)
    Input$cells <- names(Input$data)
    browser()
    updateSelectInput(session, "selectData", choices = .getHeaders(input$file1$datapath, input$header))
+=======
+                         
+)
+ observe({Input$data <- .getData(input$file1$datapath, input$header)
+ Input$cells <- names(Input$data)
+>>>>>>> 424ddf657da18176d039623de76ff31814b5ff64
  })
+ 
  
  test <- reactive({
   if(is.null(Input$data))
@@ -62,8 +72,38 @@ shinyServer(function(input, output, session) {
   }
  })
  
+<<<<<<< HEAD
  output$content<-renderTable(Input$data)
  
+=======
+ #output$content<-renderPrint(paste(Input$data, "------------------------------------------"))
+ #output$content<-renderPrint({"------------------------------------------"})
+ m <- reactive({
+  data.frame(matrix(unlist(Input$data)))
+ })
+ output$content<-renderPrint(paste(table(Input$data)))
+ 
+ 
+ 
+ 
+ #observe({
+  #updateSelectInput(session, "inSelect", choices = names(Input$data))
+ #})
+ 
+ output$selectBox <- renderUI({
+  if(length(Input$data)<1)
+   return(strong ("WRONG"))
+  else{
+   withTags(
+    div(class="row",
+       selectInput("selectdata", "Select Data", choices = names(Input$data), FALSE, FALSE, TRUE))
+   )
+  }
+  print(typeof(Input$data))
+ })
+            
+ #########Summary####
+>>>>>>> 424ddf657da18176d039623de76ff31814b5ff64
  output$summary <- renderTable({
   models <- test()
   if(is.null(models))
@@ -80,10 +120,8 @@ shinyServer(function(input, output, session) {
   })
   unlist(cols)
  })
- 
+
  output$plot <- renderPlot({
-  if(is.null(input$file1$datapath))
-   exampleInput()
   if(is.null(test()))
    return(NULL)
   
@@ -108,4 +146,7 @@ shinyServer(function(input, output, session) {
  
  session$onSessionEnded(function() { stopApp() })
  
+ 
 })
+
+
