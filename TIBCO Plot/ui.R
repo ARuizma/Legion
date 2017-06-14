@@ -1,4 +1,3 @@
-
 library(shiny)
 library(shinydashboard)
 
@@ -23,41 +22,11 @@ shinyUI(
    menuItem("Content", tabName = "content", icon = icon("th")),
       
    menuItem("Summary", tabName = "summary", icon = icon("th")),
-  
-  #fileInput('file1', 'Choose File with .csv format',
-                        #accept=c('text/csv', 
-                        #         'text/comma-separated-values, text/plain', 
-                         #        '.csv'),
-              tags$br()
-              #checkboxInput('header', 'Header', TRUE)
-             # radioButtons('sep', 'Separator'
-              #             c(Comma=',',
-               #              Semicolon=';',
-                #             Tab='\t'),
-                 #          ','),
-              #radioButtons('quote', 'Quote',
-                           #c(None='',
-                            # 'Double Quote'='"',
-                             #'Single Quote'="'",
-                          # '"'),
-              #selectInput("plot_scaletype", "Scale type",
-               #           c("normal" = "normal",
-                #            "log" = "log"
-                 #         ),
-                  #        selected = "log",
-                   #       selectize = FALSE
-             # ),
-              
-             # selectInput('xcol', 'Select X variable', choices = "Pending Upload"),
 
- 
-              #selectInput('ycol', 'Select Y variable', choices = "Pending Upload")
-# ),
+   tags$br()
 )
 ),
 
-
-             
  #MainPanel####
  
  dashboardBody(
@@ -82,6 +51,12 @@ shinyUI(
            ),
            
            box(
+            title = "Choose Data Names",
+            selectInput('zcol', '', choices = "Pending Upload"
+            )
+           ), 
+           
+           box(
             title = "Choose X axis",
             selectInput('xcol', '', choices = "Pending Upload"
             )
@@ -95,12 +70,6 @@ shinyUI(
           )
           )
   ),
-        
-   
-   #tabPanel("Curve",
-            # Plot output
-    #         plotOutput('plot')
-   #),
   
   tabItem("content",
           fluidRow(
@@ -115,7 +84,7 @@ shinyUI(
             
              box(
               title = "Upload File",
-              fileInput('file1', 'Choose File with .csv format',
+              fileInput('file1', 'Choose File with .csv, .txt or .tsv format',
                         accept=c('text/csv', 
                                  'text/comma-separated-values, text/plain', 
                                 '.csv')
@@ -140,25 +109,10 @@ shinyUI(
    ),
              
    tabItem("summary",
-           ("Data Summary")
+           title = "Data Summary",
+           verbatimTextOutput('summary')
    )
-   #tabPanel("Summary",
-    #        withTags(					
-     #        div(class = "col-sm-12",
-      #           h3(id="model-summary", "Model(s) summary", align="center"),
-       #          tableOutput('summary')
-        #     )
-         #   )
-   #), 
    
-  # tabPanel("Content",
-   #         withTags(
-    #         div(class = "col-sm-12",
-     #            h3(id="content", "Data Content", align= "center"),
-      #           tableOutput('content')
-       #      )
-        #    )
-   #)
  )
    
  )

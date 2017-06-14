@@ -12,19 +12,18 @@ shinyServer(function(input, output, session) {
  
  Input <- reactiveValues(data = matrix(),
                          cells = character()
-<<<<<<< HEAD
+
  )
  observe({
    Input$data <- .getData(input$file1$datapath, input$header)
    Input$cells <- names(Input$data)
    browser()
    updateSelectInput(session, "selectData", choices = .getHeaders(input$file1$datapath, input$header))
-=======
-                         
-)
+                
+})
  observe({Input$data <- .getData(input$file1$datapath, input$header)
  Input$cells <- names(Input$data)
->>>>>>> 424ddf657da18176d039623de76ff31814b5ff64
+
  })
  
  
@@ -72,10 +71,9 @@ shinyServer(function(input, output, session) {
   }
  })
  
-<<<<<<< HEAD
  output$content<-renderTable(Input$data)
  
-=======
+
  #output$content<-renderPrint(paste(Input$data, "------------------------------------------"))
  #output$content<-renderPrint({"------------------------------------------"})
  m <- reactive({
@@ -103,7 +101,7 @@ shinyServer(function(input, output, session) {
  })
             
  #########Summary####
->>>>>>> 424ddf657da18176d039623de76ff31814b5ff64
+
  output$summary <- renderTable({
   models <- test()
   if(is.null(models))
