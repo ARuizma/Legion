@@ -23,36 +23,9 @@ shinyUI(
    menuItem("Content", tabName = "content", icon = icon("th")),
       
    menuItem("Summary", tabName = "summary", icon = icon("th")),
-  
-  #fileInput('file1', 'Choose File with .csv format',
-                        #accept=c('text/csv', 
-                        #         'text/comma-separated-values, text/plain', 
-                         #        '.csv'),
-              tags$br()
-              #checkboxInput('header', 'Header', TRUE)
-             # radioButtons('sep', 'Separator'
-              #             c(Comma=',',
-               #              Semicolon=';',
-                #             Tab='\t'),
-                 #          ','),
-              #radioButtons('quote', 'Quote',
-                           #c(None='',
-                            # 'Double Quote'='"',
-                             #'Single Quote'="'",
-                          # '"'),
-              #selectInput("plot_scaletype", "Scale type",
-               #           c("normal" = "normal",
-                #            "log" = "log"
-                 #         ),
-                  #        selected = "log",
-                   #       selectize = FALSE
-             # ),
-              
-             # selectInput('xcol', 'Select X variable', choices = "Pending Upload"),
 
- 
-              #selectInput('ycol', 'Select Y variable', choices = "Pending Upload")
-# ),
+              tags$br()
+   
 )
 ),
 

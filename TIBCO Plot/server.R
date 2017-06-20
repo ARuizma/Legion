@@ -30,20 +30,32 @@ server = function(input, output, session) {
  output$plot <- renderPlot({
   
   if(is.null(input$file1))
-     return(NULL)
+   return(NULL)
   
-  df <- data()[, c(input$xcol, input$ycol)]
+  dat <- data()
+  
   switch(input$plot_scaletype,
-         normal = plot(df),
+         
+         normal = ggplot(dat, aes_q(x=as.name(input$xcol), y=as.name(input$ycol), colour = as.name(input$zcol))) +
+          ggtitle("Curve Fitting") + theme(plot.title = element_text(hjust = 0.5)) +
+          geom_point() +
+          stat_summary(aes_q(y=as.name(input$ycol), group=as.name(input$zcol), colour = as.name(input$zcol)), fun.y = mean, geom = "line"),
+         
          log =
-          plot(df, log = "xy", type = "p", main = "Curve Fitting")
+          ggplot(dat, aes_q(x=as.name(input$xcol), (y=as.name(input$ycol)), colour = as.name(input$zcol))) + 
+          ggtitle("Curve Fitting") + theme(plot.title = element_text(hjust = 0.5)) +
+          scale_x_log10() + 
+          geom_point() +
+          geom_smooth(method = 'nls', formula = (y~a + ((b-a) / (1 + ((x / c) ^ d)))), method.args = list(start = c(a = "a2", b = "b2", c = "c2", d = "d2")), se = FALSE)
+         #stat_summary(aes_q(y=as.name(input$ycol), group=as.name(input$zcol), colour = as.name(input$zcol)), fun.y = mean, geom = "line")
   )
-  
  })
  
+ output$summary <- renderPrint({
+  
+  if(is.null(input$file1))
+   return(NULL)
+  
+  summary(data())
+ })
 }
- 
-
-
-
-
