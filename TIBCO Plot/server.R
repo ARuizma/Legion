@@ -29,16 +29,6 @@ server = function(input, output, session) {
  
  output$content<-renderTable({data()})
  
- xy <- input$xcol * input$ycol
- 
- mid.y <- (max(y) + min(y)) / 2
- 
- n <- nrow(dat)
- 
- a2 = quantile("y", 1, na.rm = TRUE)
- b2 = quantile("y", 0, na.rm = TRUE)
- c2 = dat[which.min(abs(input$ycol - mid.y)), "x"]
- d2 = (n * (sum(xy) - sum(x) * sum(y))) / abs(n * (sum(x ^ 2) - sum(y ^ 2)))
  
  output$plot <- renderPlot({
   
@@ -59,7 +49,7 @@ server = function(input, output, session) {
           ggtitle("Curve Fitting") + theme(plot.title = element_text(hjust = 0.5)) +
           scale_x_log10() + 
           geom_point() +
-          geom_smooth(method = 'nls', formula = (y~a + ((b-a) / (1 + ((x / c) ^ d)))), method.args = list(start = c(a = "a2", b = "b2", c = "c2", d = "d2")), se = FALSE)
+          #geom_smooth(method = 'nls', formula = (y~a + ((b-a) / (1 + ((x / c) ^ d)))), method.args = list(start = c(a = "a2", b = "b2", c = "c2", d = "d2")), se = FALSE)
           #stat_summary(aes_q(y=as.name(input$ycol), group=as.name(input$zcol), colour = as.name(input$zcol)), fun.y = mean, geom = "line")
   )
  })
