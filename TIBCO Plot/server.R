@@ -16,6 +16,7 @@ server = function(input, output, session) {
  df<- read.csv(infile$datapath, header=input$header, sep=input$sep, quote= input$quote, check.names = FALSE)
  
  observe({
+  z <- updateSelectInput(session, 'zcol', choices = names(df), selected=names(df)[1])
   x <- updateSelectInput(session, 'xcol', choices = names(df), selected=names(df)[2])
   y <- updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
  })

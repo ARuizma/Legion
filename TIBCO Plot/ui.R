@@ -55,6 +55,12 @@ shinyUI(
            ),
            
            box(
+            title = "Choose Data Names",
+            selectInput('zcol', '', choices = "Pending Upload"
+            )
+           ),
+           
+           box(
             title = "Choose X axis",
             selectInput('xcol', '', choices = "Pending Upload"
             )
