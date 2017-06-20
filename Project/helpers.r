@@ -18,14 +18,14 @@
    cat("format not supported.\n")
    return(NULL)
   }
-<<<<<<< HEAD
+
 
   # Check whether ',' is used as decimal sep
   if(any(grepl(",", dat[,2])))
    dat[,2] <- as.numeric(as.character(gsub(",", ".", dat[,2])))
   if(any(grepl(",", dat[,3])))
    dat[,3] <- as.numeric(as.character(gsub(",", ".", dat[,3])))
-=======
+
   
    #Check whether ',' is used as decimal sep
   #if(any(grepl(",", dat[,2])))
@@ -33,7 +33,7 @@
   #if(any(grepl(",", dat[,3])))
    #dat[,3] <- as.numeric(as.character(gsub(",", ".", dat[,3])))
   
->>>>>>> 424ddf657da18176d039623de76ff31814b5ff64
+
   
   #dat <- dat[dat[,2]!=0,]
   cat(dat)
@@ -43,7 +43,6 @@
  
 }
 
-<<<<<<< HEAD
 .getHeaders <- function(filepath, h){
   if (is.null(filepath)) {
     return(NULL)
@@ -81,9 +80,7 @@
 #     if(max(y, na.rm = TRUE) > 1)
 #         abline(h = 1, lty = 2)
 # }
-=======
 
->>>>>>> 424ddf657da18176d039623de76ff31814b5ff64
 .addPolygon <- function(object){
  newx <- getXcurve(object)
  newy <- getYcurve(object)
