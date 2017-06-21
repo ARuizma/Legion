@@ -9,13 +9,13 @@ library(nplr)
 #source("helpersnls")
  
 server = function(input, output, session) {
- 
+ browser()
  data <- reactive ({
   infile <- input$file1
   if(is.null(infile))
    return(NULL)
  
- df<- read.csv(infile$datapath, header=input$header, sep=input$sep, check.names = FALSE)
+ df<- read.delim(infile$datapath, header=input$header, sep=input$sep, check.names = FALSE)
  
  observe({
  updateSelectInput(session, 'zcol', choices = names(df), selected=names(df)[1])
@@ -29,30 +29,34 @@ server = function(input, output, session) {
  
  output$content<-renderTable({data()})
  
+
  #NPLRTEST####
  
  datalist <- reactive ({
- if (is.null(infile))
+ if (is.null(df))
      return(NULL)
- filelist <- split(infile, input$zcol)
+ filelist <- split(df, input$zcol)
  })
  
- conc <- input$xcol
- y0 <- input$ycol
- y1 <- convertToProp(y0)
-
  
- test <- 
+ test <- reactive({
+  if (is.null(df))
+   return(NULL)
  models <- lapply(datalist, function(tmp){
+  x<- tmp(input$xcol)
+  y<- tmp(input$ycol)
+  y1 <- convertToProp(input$ycol)
   nplr(conc, y1, useLog = TRUE, LPweight = 0.25, npars="all", method = c("res", "sdw", "gw"), silent = FALSE)
+ })
+ models
  })
  
  output$plot <- renderPlot({
   
-  if(is.null(input$file1))
+  if(is.null(test()))
      return(NULL)
   
-  plot(models)
+  plot(test())
   #dat <- data()
   
  # switch(input$plot_scaletype,
@@ -72,11 +76,11 @@ server = function(input, output, session) {
   #)
  })
  
- output$summary <- renderPrint({
-  
-  if(is.null(input$file1))
+ output$summary <- renderTable({
+  models <- test()
+  if(is.null(models))
    return(NULL)
   
-  summary(models)
+  buildsummary(models)
  })
 }
