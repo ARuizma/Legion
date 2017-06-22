@@ -1,26 +1,27 @@
 library(shiny)
 library(XLConnect)
-library(shinyjs)
-library(colourpicker)
+#library(colourpicker)
 library(nlstools)
 library(ggplot2)
 library(shinydashboard)
 library(nplr)
-#source("helpersnls")
+source("helpersnplr.R")
+
+#options(shiny.trace =TRUE)
  
 server = function(input, output, session) {
- browser()
+
  data <- reactive ({
   infile <- input$file1
   if(is.null(infile))
    return(NULL)
  
- df<- read.delim(infile$datapath, header=input$header, sep=input$sep, check.names = FALSE)
+ df<- read.csv(infile$datapath, header=input$header, sep=input$sep, check.names = FALSE)
  
  observe({
- updateSelectInput(session, 'zcol', choices = names(df), selected=names(df)[1])
- updateSelectInput(session, 'xcol', choices = names(df), selected=names(df)[2])
- updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
+updateSelectInput(session, 'zcol', choices = names(df), selected=names(df)[1])
+updateSelectInput(session, 'xcol', choices = names(df), selected=names(df)[2])
+updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
  })
  
  return(df)
@@ -32,31 +33,34 @@ server = function(input, output, session) {
 
  #NPLRTEST####
  
- datalist <- reactive ({
- if (is.null(df))
-     return(NULL)
- filelist <- split(df, input$zcol)
- })
  
- 
- test <- reactive({
-  if (is.null(df))
-   return(NULL)
- models <- lapply(datalist, function(tmp){
-  x<- tmp(input$xcol)
-  y<- tmp(input$ycol)
-  y1 <- convertToProp(input$ycol)
-  nplr(conc, y1, useLog = TRUE, LPweight = 0.25, npars="all", method = c("res", "sdw", "gw"), silent = FALSE)
+datalist <- reactive({
+ split(data(), input$zcol)
+})
+
+test <- reactive({
+ if(is.null(datalist()))
+  return(NULL)
+models <- lapply(datalist(), function(tmp){
+ x <- tmp[,input$xcol]
+ y <- tmp[,input$ycol]
+ if(!is.numeric(x) || !is.numeric(y))
+  return(NULL)
+ if(input$props){
+  y <- convertToProp(y, T0=NULL, Ctrl = NULL)
+ }
+ nplr(x, y, npars = "all", useLog = TRUE, silent = TRUE)
  })
- models
- })
- 
+
+})
+
  output$plot <- renderPlot({
   
   if(is.null(test()))
      return(NULL)
-  
-  plot(test())
+ .multiCurve(test(),
+             las = 1
+ )
   #dat <- data()
   
  # switch(input$plot_scaletype,
@@ -75,12 +79,22 @@ server = function(input, output, session) {
           #stat_summary(aes_q(y=as.name(input$ycol), group=as.name(input$zcol), colour = as.name(input$zcol)), fun.y = mean, geom = "line")
   #)
  })
+
  
  output$summary <- renderTable({
-  models <- test()
-  if(is.null(models))
+  if(is.null(test()))
    return(NULL)
-  
-  buildsummary(models)
+  buildSummary(test())
  })
+ 
+ output$test <- renderPrint({
+ 
+ print(
+  typeof(input$xcol)
+ )
+ }
+ )
+ 
 }
+
+

@@ -22,6 +22,8 @@ shinyUI(
    menuItem("Content", tabName = "content", icon = icon("th")),
       
    menuItem("Summary", tabName = "summary", icon = icon("th")),
+   
+   menuItem("Tests", tabName = "test", icon = icon("th")),
 
    tags$br()
 )
@@ -49,6 +51,12 @@ shinyUI(
                         selectize = FALSE
             )
            ),
+           
+           box(
+            title = "",
+            checkboxInput("props", "Convert to Prop", TRUE)
+           ),
+            
            
            box(
             title = "Choose Data Names",
@@ -110,8 +118,13 @@ shinyUI(
              
    tabItem("summary",
            title = "Data Summary",
-           verbatimTextOutput('summary')
-   )
+           tableOutput('summary')
+   ),
+   
+  tabItem("test",
+          title = "Tests",
+          textOutput('test')
+  )
    
  )
    
