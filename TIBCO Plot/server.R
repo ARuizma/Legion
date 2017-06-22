@@ -16,7 +16,7 @@ server = function(input, output, session) {
   if(is.null(infile))
    return(NULL)
  
- df<- read.csv(infile$datapath, header=input$header, sep=input$sep, check.names = FALSE)
+ df<- read.table(infile$datapath, header=input$header, sep=input$sep, check.names = FALSE)
  
  observe({
 updateSelectInput(session, 'zcol', choices = names(df), selected=names(df)[1])
@@ -33,9 +33,16 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
 
  #NPLRTEST####
  
- 
+df2<- reactive ({
+ names<- data()[,input$zcol]
+})
+
+
+
 datalist <- reactive({
- split(data(), input$zcol)
+ if(is.null(data()))
+    return(NULL)
+ split(data(), df2())
 })
 
 test <- reactive({
@@ -49,7 +56,8 @@ models <- lapply(datalist(), function(tmp){
  if(input$props){
   y <- convertToProp(y, T0=NULL, Ctrl = NULL)
  }
- nplr(x, y, npars = "all", useLog = TRUE, silent = TRUE)
+browser()
+  nplr((x+0.0001), y, npars = "all", useLog = input$toLog, silent = TRUE)
  })
 
 })
@@ -87,10 +95,9 @@ models <- lapply(datalist(), function(tmp){
   buildSummary(test())
  })
  
- output$test <- renderPrint({
+ output$test <- renderTable({
  
- print(
-  typeof(input$xcol)
+ print((log(datalist()))
  )
  }
  )

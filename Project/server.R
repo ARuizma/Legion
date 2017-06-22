@@ -38,7 +38,7 @@ shinyServer(function(input, output, session) {
    if(input$props){
     y <- convertToProp(y, T0 = NULL, Ctrl = NULL)
    }
-   npars <- ifelse(input$npar=="all", "all", as.numeric(input$npar))
+   npars <- ifels(input$npar=="all", "all", as.numeric(input$npar))
    nplr(x, y, npars=npars, useLog=input$toLog, silent = TRUE)
   })
   models
@@ -140,7 +140,7 @@ shinyServer(function(input, output, session) {
   )
   
  }, res=180, width=1033, height=875)
- 
+ F
  
  session$onSessionEnded(function() { stopApp() })
  

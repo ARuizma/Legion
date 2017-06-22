@@ -56,6 +56,11 @@ shinyUI(
             title = "",
             checkboxInput("props", "Convert to Prop", TRUE)
            ),
+           
+           box(
+            title = "",
+            checkboxInput("toLog", "yes", TRUE)
+           ),
             
            
            box(
@@ -123,7 +128,7 @@ shinyUI(
    
   tabItem("test",
           title = "Tests",
-          textOutput('test')
+          tableOutput('test')
   )
    
  )

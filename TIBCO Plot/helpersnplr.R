@@ -103,29 +103,7 @@
          col = Cols, bty = "n", cex = Cex, lwd = 2, pch = 19)
  }
 }
-############################
-# HELPERS color picker
-############################
-.renderDiv <- function(items){
- out <- c()
- #     for(item in items){
- #         txt <- sprintf("div(class = 'col-sm-12', checkboxInput('', '%s', FALSE))", item)
- #         out <- c(out, txt)
- #     }
- N <- length(items)
- for(ii in seq_len(N)){
-  item <- items[ii]
-  col_i <- sprintf('col_%s', ii)
-  txt <- sprintf(
-   "div(class = 'col-md-12', style='display: inline',
-   div(class = 'col-xs-7 cellName', '%s'),
-   div(class = 'col-xs-5 colPicker', colourInput('%s', '', '#888'))
-  )",
-            item, col_i)
-  out <- c(out, txt)
- }
- out
-}
+
 
 #####Summary####
 buildSummary <- function(models){
@@ -158,9 +136,9 @@ buildSummary <- function(models){
  nplrDate <- as.character(packageDescription("nplr")["Date"])
  rv <- as.character(version["version.string"])
  
- out <- cbind.data.frame(cellLine = names('zcol'),
+ out <- cbind.data.frame(cellLine = names(models),
                          do.call(rbind, pars),
-                         GOF = do.call(c, gof),
+                         #GOF = do.call(c, gof),
                          do.call(rbind, auc),
                          do.call(rbind, inflpt),
                          do.call(rbind, ic50),
