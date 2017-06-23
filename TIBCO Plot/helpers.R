@@ -1,7 +1,7 @@
 .addPolygon <- function(object){
  newx <- getXcurve(object)
  newy <- getYcurve(object)
- bounds <-confInt(getStdErr(object), getY(object), getFitValues(object), newy)
+ bounds <- nplr:::.confInt(getStdErr(object), getY(object), getFitValues(object), newy)
  xx <- c(newx, rev(newx))
  yy <- c(bounds$lo, rev(bounds$hi))
  polygon(xx, yy, border = NA, col = rgb(.8,.8,.8,.4))
@@ -108,22 +108,22 @@
 #####Summary####
 buildSummary <- function(models){
  pars <- lapply(models, function(model){
-  p <- getPar(model)
+  p <- getPar(models)
   p <- unlist(p)
   p[-1] <- format(p[-1], digits = 3, scientific = TRUE)
   p
  })
- gof <- lapply(models, function(model) format(getGoodness(model), digits = 3, scientific = TRUE) )
- auc <- lapply(models, function(model) signif(getAUC(model), 3) )
+ gof <- lapply(models, function(model) { format(getGoodness(models), digits = 3, scientific = TRUE)} )
+ auc <- lapply(models, function(model) {signif(getAUC(models), 3)} )
  inflpt <- lapply(models, function(model){
-  infl <- as.numeric(getInflexion(model))
+  infl <- as.numeric(getInflexion(models))
   cbind.data.frame(
    xInfl = format(infl[1], digits = 3),
    yInfl = format(infl[2], digits = 3)
   )
  })
  ic50 <- lapply(models, function(model){
-  estim <- getEstimates(model, .5)
+  estim <- getEstimates(models, .5)
   interv <- sprintf("[%s | %s]",
                     format(estim$x.025, digits=3, scientific = TRUE),
                     format(estim$x.975, digits=3, scientific = TRUE)
@@ -138,7 +138,7 @@ buildSummary <- function(models){
  
  out <- cbind.data.frame(cellLine = names(models),
                          do.call(rbind, pars),
-                         #GOF = do.call(c, gof),
+                         GOF = do.call(c, gof),
                          do.call(rbind, auc),
                          do.call(rbind, inflpt),
                          do.call(rbind, ic50),
@@ -146,9 +146,8 @@ buildSummary <- function(models){
                          "nplr version" = sprintf("%s (%s)",nplrv, nplrDate),
                          "R version" = gsub("R version ", "", rv)
  )
- 
- rownames(out) <- sprintf("model-%s", seq_len(length(models)))
- #Quito transponer matriz porque no aparece el nombre de los datos
- #out <- as.data.frame(t(out))
+ rownames(out) <- sprintf("models-%s", seq_len(length(models)))
+
+ out <- as.data.frame(t(out))
  out
 }

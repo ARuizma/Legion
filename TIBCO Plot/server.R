@@ -5,18 +5,19 @@ library(nlstools)
 library(ggplot2)
 library(shinydashboard)
 library(nplr)
-source("helpersnplr.R")
+source("helpers.R")
+
 
 #options(shiny.trace =TRUE)
  
-server = function(input, output, session) {
+shinyServer(function(input, output, session) {
 
  data <- reactive ({
   infile <- input$file1
   if(is.null(infile))
    return(NULL)
  
- df<- read.table(infile$datapath, header=input$header, sep=input$sep, check.names = FALSE)
+ df<- read.csv(infile$datapath, header=input$header, sep=input$sep, check.names = FALSE)
  
  observe({
 updateSelectInput(session, 'zcol', choices = names(df), selected=names(df)[1])
@@ -34,16 +35,15 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
  #NPLRTEST####
  
 df2<- reactive ({
- names<- data()[,input$zcol]
+data()[,input$zcol]
 })
-
-
 
 datalist <- reactive({
  if(is.null(data()))
     return(NULL)
  split(data(), df2())
 })
+
 
 test <- reactive({
  if(is.null(datalist()))
@@ -56,18 +56,20 @@ models <- lapply(datalist(), function(tmp){
  if(input$props){
   y <- convertToProp(y, T0=NULL, Ctrl = NULL)
  }
-browser()
-  nplr((x+0.0001), y, npars = "all", useLog = input$toLog, silent = TRUE)
+ #browser()
+  nplr(x, y, npars = "all", useLog = input$toLog, silent = TRUE)
  })
-
+#models
 })
 
  output$plot <- renderPlot({
   
   if(is.null(test()))
+   
      return(NULL)
- .multiCurve(test(),
-             las = 1
+  
+  models <- test()
+ .multiCurve(models
  )
   #dat <- data()
   
@@ -87,21 +89,19 @@ browser()
           #stat_summary(aes_q(y=as.name(input$ycol), group=as.name(input$zcol), colour = as.name(input$zcol)), fun.y = mean, geom = "line")
   #)
  })
-
  
  output$summary <- renderTable({
+  models <- test()
   if(is.null(test()))
    return(NULL)
-  buildSummary(test())
+  buildSummary(models)
  })
  
  output$test <- renderTable({
- 
- print((log(datalist()))
- )
- }
- )
- 
+ print(datalist())
 }
-
-
+)
+ 
+ session$onSessionEnded(function() { stopApp() })
+ 
+})
