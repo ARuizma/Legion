@@ -29,16 +29,48 @@ server = function(input, output, session) {
  
  output$content<-renderTable({data()})
  
- xy <- input$xcol * input$ycol
+#NLSTEST####
  
- mid.y <- (max(y) + min(y)) / 2
+param <- function(input.data, fixed = list()) {
+  # Set starting parameters
+  x <- input.data[, input$xcol]
+  y <- input.data[, input$ycol]
+  n <- nrow(input.data)
+  xy <- x * y
+  
+  start <- list()
+  
+ a_start = if (!"a" %in% names(fixed)) {
+   start["a"] = quantile(y, 1, na.rm = TRUE)[[1]]
+  }
+  
+ b_start = if (!"b" %in% names(fixed)) {
+   start["b"] = quantile(y, 0, na.rm = TRUE)[[1]]
+  }
+  
+ c_start = if (length(y) > 2) {
+   mid.y <- (max(y) + min(y)) / 2
+   start["c"] = input.data[which.min(abs(input.data$y - mid.y)), input$xcol]
+  } else {
+   start["c"] = mean(x, na.rm = TRUE)[[1]]
+  }
+  
+  d = 0
+  d_start = if (!"d" %in% names(fixed)) {
+   d <- (n * (sum(xy) - sum(x) * sum(y))) / abs(n * (sum(x ^ 2) - sum(y ^ 2)))
+  }
+  if (is.na(d)) {
+   start["d"] <- 0
+  } else if (d < 1) {
+   start["d"] = floor(d)
+  } else {
+   start["d"] = ceiling(d)
+  }
+  
+  return(start)
+ }
+#NLSTEST####
  
- n <- nrow(dat)
- 
- a2 = quantile("y", 1, na.rm = TRUE)
- b2 = quantile("y", 0, na.rm = TRUE)
- c2 = dat[which.min(abs(input$ycol - mid.y)), "x"]
- d2 = (n * (sum(xy) - sum(x) * sum(y))) / abs(n * (sum(x ^ 2) - sum(y ^ 2)))
  
  output$plot <- renderPlot({
   
@@ -59,9 +91,11 @@ server = function(input, output, session) {
           ggtitle("Curve Fitting") + theme(plot.title = element_text(hjust = 0.5)) +
           scale_x_log10() + 
           geom_point() +
-          geom_smooth(method = 'nls', formula = (y~a + ((b-a) / (1 + ((x / c) ^ d)))), method.args = list(start = c(a = "a2", b = "b2", c = "c2", d = "d2")), se = FALSE)
+          geom_smooth(method = 'nls', formula = (y~a + ((b-a) / (1 + ((x / c) ^ d)))), method.args = list(start(a="a_start", b = "b_start", c= "c_start", d=d_start)), se = FALSE, inherit.aes = TRUE)
           #stat_summary(aes_q(y=as.name(input$ycol), group=as.name(input$zcol), colour = as.name(input$zcol)), fun.y = mean, geom = "line")
-  )
+  
+         )
+ 
  })
  
  output$summary <- renderPrint({
@@ -70,5 +104,6 @@ server = function(input, output, session) {
    return(NULL)
   
   summary(data())
+  
  })
 }
