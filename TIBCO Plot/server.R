@@ -1,18 +1,19 @@
 library(shiny)
 library(XLConnect)
-#library(colourpicker)
+library(colourpicker)
 library(nlstools)
 library(ggplot2)
 library(shinydashboard)
 library(nplr)
-source("helpers.R")
 
 
-#options(shiny.trace =TRUE)
+
+options(shiny.error =browser)
+#options(shiny.error =recover)
  
 shinyServer(function(input, output, session) {
 
- data <- reactive ({
+ df <- reactive ({
   infile <- input$file1
   if(is.null(infile))
    return(NULL)
@@ -29,79 +30,105 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
  
  })
  
- output$content<-renderTable({data()})
+ output$content<-renderTable({df()})
  
-
+#browser()
  #NPLRTEST####
- 
-df2<- reactive ({
-data()[,input$zcol]
-})
 
-datalist <- reactive({
- if(is.null(data()))
-    return(NULL)
- split(data(), df2())
-})
-
-
-test <- reactive({
- if(is.null(datalist()))
-  return(NULL)
-models <- lapply(datalist(), function(tmp){
- x <- tmp[,input$xcol]
- y <- tmp[,input$ycol]
- if(!is.numeric(x) || !is.numeric(y))
-  return(NULL)
- if(input$props){
-  y <- convertToProp(y, T0=NULL, Ctrl = NULL)
- }
- #browser()
-  nplr(x, y, npars = "all", useLog = input$toLog, silent = TRUE)
+ df2<- reactive ({
+  df()[,input$zcol]
  })
-#models
+ 
+ datalist <- reactive({
+  if(is.null(df()))
+   return(NULL)
+  split(df(), df2())
+ })
+ 
+ test <- reactive({
+  if(is.null(datalist()))
+   return(NULL)
+  models <- lapply(datalist(), function(tmp){
+   x <- tmp[,input$xcol]
+   y <- tmp[,input$ycol]
+   if(!is.numeric(x) || !is.numeric(y))
+    return(NULL)
+   if(input$props){
+    y <- convertToProp(y, T0=NULL, Ctrl = NULL)
+   }
+    nplr(x, y, npars = "all", useLog = input$toLog, silent=TRUE)
+   
+  })
+  models
+ })
+
+
+
+B <- reactive({
+ models<-test()
+ lapply(models, function(model){
+  
+ getPar(model)$params$bottom
+ })
 })
 
- output$plot <- renderPlot({
+TT <- reactive({
+ models<-test()
+ lapply(models, function(model){
   
-  if(is.null(test()))
+  getPar(model)$params$top
+ })
+})
+
+xmid <- reactive({
+ models<-test()
+ lapply(models, function(model){
+  
+  getPar(model)$params$xmid
+ })
+})
+
+s <- reactive({
+ models<-test()
+ lapply(models, function(model){
+  
+  getPar(model)$params$s
+ })
+})
+
+scal <- reactive({
+ models<-test()
+ lapply(models, function(model){
+  
+  getPar(model)$params$scal
+ })
+})
+ 
+
+ 
+ logistic <- function(x){
+  
+  (B()+(TT()-B())/(1+10^(scal()*(xmid() - x)))^s())
+ }
+ 
+ output$plot <- renderPlot({
+ 
+  if(is.null(df()))
    
      return(NULL)
   
-  models <- test()
- .multiCurve(models
- )
-  #dat <- data()
-  
- # switch(input$plot_scaletype,
-         
-  #       normal = ggplot(dat, aes_q(x=as.name(input$xcol), y=as.name(input$ycol), colour = as.name(input$zcol))) +
-   #       ggtitle("Curve Fitting") + theme(plot.title = element_text(hjust = 0.5)) +
-    #      geom_point() +
-     #     stat_summary(aes_q(y=as.name(input$ycol), group=as.name(input$zcol), colour = as.name(input$zcol)), fun.y = mean, geom = "line"),
-         
-      #   log =
-       #   ggplot(dat, aes_q(x=as.name(input$xcol), (y=as.name(input$ycol)), colour = as.name(input$zcol))) + 
-        #  ggtitle("Curve Fitting") + theme(plot.title = element_text(hjust = 0.5)) +
-         # scale_x_log10() + 
-          #geom_point() +
-          #geom_smooth(method = 'nplr', formula = , method.args = list(start = c(a = "a2", b = "b2", c = "c2", d = "d2")), se = FALSE)
-          #stat_summary(aes_q(y=as.name(input$ycol), group=as.name(input$zcol), colour = as.name(input$zcol)), fun.y = mean, geom = "line")
-  #)
+  dat <- df()
+  browser()
+  ggplot(dat, aes(x=dat[input$xcol], y=dat[input$ycol])) + geom_point(colo#stat_function(fun = logistic()) #+ facet_wrap(~input$zcol, scales = "free") + stat_summary(fun.y = "mean", colour = "Red", geom = "point", size = 5) #geom_point(aes(colour = Compound))
  })
- 
- output$summary <- renderTable({
-  models <- test()
-  if(is.null(test()))
-   return(NULL)
-  buildSummary(models)
- })
- 
- output$test <- renderTable({
- print(datalist())
-}
-)
- 
- session$onSessionEnded(function() { stopApp() })
+
+
+ #output$summary <- renderTable({
+  #models <- data()
+  #if(is.null(models))
+   #return(NULL)
+  #buildSummary(models)
+ #})
  
 })
+ 
