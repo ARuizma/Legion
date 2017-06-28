@@ -52,22 +52,26 @@ shinyUI(
             )
            ),
            
-           box(
-            title = "",
-            checkboxInput("props", "Convert to Prop", TRUE)
-           ),
+           #box(
+            #title = "",
+            #checkboxInput("props", "Convert to Prop", FALSE)
+           #),
            
            box(
-            title = "",
-            checkboxInput("toLog", "yes", TRUE)
+            title = "Choose Number of Parameters",
+            selectInput('npars', '', c("Best" = 'all',
+                                       "2" = '2',
+                                       "3" = '3',
+                                       "4"= '4',
+                                       "5"='5'), "all"
+                        )
            ),
             
-           
            box(
             title = "Choose Data Names",
             selectInput('zcol', '', choices = "Pending Upload"
             )
-           ), 
+           ),
            
            box(
             title = "Choose X axis",

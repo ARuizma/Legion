@@ -32,85 +32,12 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
  
  output$content<-renderTable({df()})
  
-#browser()
  #NPLRTEST####
 
  df2<- reactive ({
   df()[,input$zcol]
  })
- 
- datalist <- reactive({
-  if(is.null(df()))
-   return(NULL)
-  split(df(), df2())
- })
- 
- test <- reactive({
-  if(is.null(datalist()))
-   return(NULL)
-  models <- lapply(datalist(), function(tmp){
-   x <- tmp[,input$xcol]
-   y <- tmp[,input$ycol]
-   if(!is.numeric(x) || !is.numeric(y))
-    return(NULL)
-   if(input$props){
-    y <- convertToProp(y, T0=NULL, Ctrl = NULL)
-   }
-    nplr(x, y, npars = "all", useLog = input$toLog, silent=TRUE)
-   
-  })
-  models
- })
 
-
-
-B <- reactive({
- models<-test()
- lapply(models, function(model){
-  
- getPar(model)$params$bottom
- })
-})
-
-TT <- reactive({
- models<-test()
- lapply(models, function(model){
-  
-  getPar(model)$params$top
- })
-})
-
-xmid <- reactive({
- models<-test()
- lapply(models, function(model){
-  
-  getPar(model)$params$xmid
- })
-})
-
-s <- reactive({
- models<-test()
- lapply(models, function(model){
-  
-  getPar(model)$params$s
- })
-})
-
-scal <- reactive({
- models<-test()
- lapply(models, function(model){
-  
-  getPar(model)$params$scal
- })
-})
- 
-
- 
- logistic <- function(x){
-  
-  (B()+(TT()-B())/(1+10^(scal()*(xmid() - x)))^s())
- }
- 
  output$plot <- renderPlot({
  
   if(is.null(df()))
@@ -118,10 +45,49 @@ scal <- reactive({
      return(NULL)
   
   dat <- df()
-  browser()
-  ggplot(dat, aes(x=dat[input$xcol], y=dat[input$ycol])) + geom_point(colo#stat_function(fun = logistic()) #+ facet_wrap(~input$zcol, scales = "free") + stat_summary(fun.y = "mean", colour = "Red", geom = "point", size = 5) #geom_point(aes(colour = Compound))
- })
+  dat[input$xcol] <- log10(dat[input$xcol])
+  
+  
+  #dat_1 <- dat[dat$cell == "easyRider",]
+  npars <- ifelse(input$npars == "all", "all", as.numeric(input$npars))
+  prueba <- nplr(x = as.numeric(unlist(dat[input$xcol])), y = as.numeric(unlist(dat[input$ycol])), npars=npars, useLog=FALSE)
+  B <- getPar(prueba)$params$bottom
+  TT <- getPar(prueba)$params$top
+  xmid <- getPar(prueba)$params$xmid
+  s <- getPar(prueba)$params$s
+  scal <- getPar(prueba)$params$scal
+  logistic <- function(x){
+   
+   (B+(TT-B)/(1+10^(scal*(xmid - x)))^s)
+  }
+  #browser()
+  p1 <- ggplot(data = dat, aes_q(x=as.name(input$xcol), y=as.name(input$ycol), colour = as.name(input$zcol))) + geom_point() + facet_wrap(~df2(), scales = "free")
+  
+  for (i in 1:df2()) {
 
+  p1 <- p1 + stat_function(fun = logistic, colour = "black")
+  }
+  
+  #dat_1 <- dat[dat$cell == "Hurrycane",]
+  #prueba <- nplr(x = as.numeric(unlist(dat_1[input$xcol])), y = as.numeric(unlist(dat_1[input$ycol])), npars="all", useLog=FALSE)
+  #B1 <- getPar(prueba)$params$bottom
+  #TT1 <- getPar(prueba)$params$top
+  #xmid1 <- getPar(prueba)$params$xmid
+  #s1 <- getPar(prueba)$params$s
+  #scal1 <- getPar(prueba)$params$scal
+  
+  #logistic_1 <- function(x){
+   
+   #(B1+(TT1-B1)/(1+10^(scal1*(xmid1 - x)))^s1)
+  #}
+  
+  #p1 <- p1 + stat_function(fun = logistic_1, colour = as.name(input$zcol))
+  
+  plot(p1)
+  })
+
+ 
+ #+ facet_wrap(~input$zcol, scales = "free") + stat_summary(fun.y = "mean", colour = "Red", geom = "point", size = 5) 
 
  #output$summary <- renderTable({
   #models <- data()
