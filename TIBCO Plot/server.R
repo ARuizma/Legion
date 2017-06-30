@@ -60,12 +60,22 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
    
    (B+(TT-B)/(1+10^(scal*(xmid - x)))^s)
   }
-  #browser()
-  p1 <- ggplot(data = dat, aes_q(x=as.name(input$xcol), y=as.name(input$ycol), colour = as.name(input$zcol))) + geom_point() + facet_wrap(~df2(), scales = "free")
+  browser()
+  p1 <- ggplot(data = dat, aes_q(x=as.name(input$xcol), y=as.name(input$ycol), colour = as.name(input$zcol))) + geom_point() #+ facet_wrap(~df2(), scales = "free")
   
-  for (i in 1:df2()) {
+  for (i in 1:length(unique(df2()))) {
+   
+   if (i<length(unique(df2()))){
+    
+    p1 <- paste(p1 + stat_function(fun = logistic(x)))
+   }
+   
+   if (i == length(unique(df2()))){
+    
+    
 
   p1 <- p1 + stat_function(fun = logistic, colour = "black")
+   }
   }
   
   #dat_1 <- dat[dat$cell == "Hurrycane",]
