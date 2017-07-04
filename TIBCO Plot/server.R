@@ -91,7 +91,7 @@ param <- function(input.data, fixed = list()) {
           ggtitle("Curve Fitting") + theme(plot.title = element_text(hjust = 0.5)) +
           scale_x_log10() + 
           geom_point() +
-          geom_smooth(method = 'nls', formula = (y~a + ((b-a) / (1 + ((x / c) ^ d)))), method.args = list(start(a="a_start", b = "b_start", c= "c_start", d=d_start)), se = FALSE, inherit.aes = TRUE)
+          geom_smooth(method = 'nls', formula = (y~a + ((b-a) / (1 + ((x / c) ^ d)))), method.args = list(start(a="a_start", b = "b_start", c= "c_start", d="d_start")), se = FALSE, inherit.aes = TRUE)
           #stat_summary(aes_q(y=as.name(input$ycol), group=as.name(input$zcol), colour = as.name(input$zcol)), fun.y = mean, geom = "line")
   
          )
