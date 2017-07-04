@@ -4,7 +4,7 @@ library(shinydashboard)
 
 shinyUI(
  
- dashboardPage( 
+ dashboardPage(skin = "green",
  
  #HeaderPanel####
   
@@ -18,13 +18,23 @@ shinyUI(
   
   sidebarMenu(
    
-   menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),
+   menuItem("CurveFitting", tabName = "curvefitting", icon = icon("dashboard"),
+            
+            menuSubItem("NPLR", tabName = "nplr", icon = icon("dashboard")),
+            
+            menuSubItem("PKI", tabName = "pki", icon = icon("dashboard")),
+            
+            menuSubItem("Custom", tabName = "custom", icon = icon("dashboard"))),
 
-   menuItem("Content", tabName = "content", icon = icon("th")),
+   menuItem("TSNE", tabName = "tsne", icon = icon("th"),
+            
+            menuSubItem("Custom", tabName = "customts", icon = icon("dashboard"))),
       
-   menuItem("Summary", tabName = "summary", icon = icon("th")),
+   menuItem("PHB", tabName = "phb", icon = icon("dashboard")),
+   
+   menuItem("Summary", tabName = "summary", icon = icon("dashboard"))
 
-              tags$br()
+              #tags$br()
    
 )
 ),
@@ -36,15 +46,18 @@ shinyUI(
  dashboardBody(
   tabItems(
   
-  tabItem("dashboard",
+  tabItem("nplr",
           fluidRow(
-          box(plotOutput("plot", height = 250)),
-          
-          box(
-           title = "Customize Data Output",
            
-           box(
-            title = "Log",
+           column(width = 3,
+        
+          tabBox(title = "Data Customization", side = "right",
+                 id = "tabset1", width = NULL,
+           
+           tabPanel("Settings",
+            
+            box(
+            title = tags$p("Log", width = NULL, style = "font-size: 150%;"),
             selectInput("plot_scaletype", "Scale type",
                         c("normal" = "normal",
                           "log" = "log"
@@ -55,89 +68,63 @@ shinyUI(
            ),
            
            box(
-            title = "Choose Data Names",
+            title = "Choose Data Names", width = NULL,
             selectInput('zcol', '', choices = "Pending Upload"
             )
            ),
            
            box(
-            title = "Choose X axis",
+            title = "Choose X axis", width = NULL,
             selectInput('xcol', '', choices = "Pending Upload"
             )
            ),
            
            box(
-            title = "Choose Y axis",
+            title = "Choose Y axis", width = NULL,
             selectInput('ycol', '', choices = "Pending Upload"
             )
            )
-          )
-          )
-  ),
-        
-   
-   #tabPanel("Curve",
-            # Plot output
-    #         plotOutput('plot')
-   #),
-  
-  tabItem("content",
-          fluidRow(
+          ),
+          
+          tabPanel(
+           title = "File Information", width = NULL,
            
            box(
-            title = "Uploaded Data",
-            tableOutput('content')
-           ),
-
-           box(
-             title = "Customize Data Input",
-            
-             box(
-              title = "Upload File",
-              fileInput('file1', 'Choose File with .csv format',
-                        accept=c('text/csv', 
-                                 'text/comma-separated-values, text/plain', 
-                                '.csv')
-              )
-             ),
-             
-             box(
-              title = "",
-              checkboxInput('header', 'Headers', TRUE)
-             ),
-                      
-             box(
-              title = "Separation Type",
-              radioButtons('sep', "",
-                           c(Comma=',',
-                             Semicolon=';',
-                             Tab='\t'),
-                           ',')
-             )
+            title = "Upload File", width = NULL,
+            fileInput('file1', 'Choose File with .csv format',
+                      accept=c('text/csv', 
+                               'text/comma-separated-values, text/plain', 
+                               '.csv')
             )
+           ),
+           
+           box(
+            title = "", width = NULL,
+            checkboxInput('header', 'Headers', TRUE)
+           ),
+           
+           box(
+            title = "Separation Type", width = NULL,
+            radioButtons('sep', "",
+                         c(Comma=',',
+                           Semicolon=';',
+                           Tab='\t'),
+                         ',')
            )
-   ),
+          )
+          )),
+       box(plotOutput("plot", height = 500, width = 50))
+  )),
+        
              
    tabItem("summary",
            ("Data Summary")
    )
-   #tabPanel("Summary",
-    #        withTags(					
-     #        div(class = "col-sm-12",
-      #           h3(id="model-summary", "Model(s) summary", align="center"),
-       #          tableOutput('summary')
-        #     )
-         #   )
-   #), 
-   
-  # tabPanel("Content",
-   #         withTags(
-    #         div(class = "col-sm-12",
-     #            h3(id="content", "Data Content", align= "center"),
-      #           tableOutput('content')
-       #      )
-        #    )
-   #)
+  
+  #box(
+   #title = "Uploaded Data",
+   #tableOutput('content')
+ # ),
  )
    
  )
