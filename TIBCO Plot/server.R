@@ -6,8 +6,6 @@ library(ggplot2)
 library(shinydashboard)
 library(nplr)
 
-
-
 options(shiny.error =browser)
 #options(shiny.error =recover)
  
@@ -33,71 +31,113 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
  output$content<-renderTable({df()})
  
  #NPLRTEST####
-
- df2<- reactive ({
-  df()[,input$zcol]
+ 
+ logistic <- function(x, B, TT, scal, xmid, s){
+  
+  (B+(TT-B)/(1+10^(scal*(xmid - x)))^s)
+ }
+ 
+ 
+compoundCol <- reactive({
+ input$zcol
+})
+ 
+ xCol <- reactive({
+  input$xcol
+ })
+ 
+ yCol <- reactive({
+  input$ycol
  })
 
- output$plot <- renderPlot({
+ datalist<- reactive ({
+  df()[,input$zcol]
+ })
  
+ datalist2 <- reactive({
+  split(df(), datalist())
+ })
+ 
+ 
+ df2 <- reactive({
+  if(is.null(df()))
+   return(NULL)
+  models <- lapply(datalist2(), function(tmp){
+  x <- tmp[,xCol()]
+  y <- tmp[,yCol()]
+  y <- convertToProp(y, T0 = NULL, Ctrl = NULL)
+  npars <- ifelse(input$npars == "all", "all", as.numeric(input$npars))
+  nplr(x, y, npars = "all", useLog = TRUE)
+ })
+  models
+ })
+ 
+
+ output$plot <- renderPlot({
+  
   if(is.null(df()))
    
      return(NULL)
+
+  compoundCol <- compoundCol()
+  
+  xCol <- xCol()
+  
+  yCol <- yCol()
+  
+  df2 <- df2()
   
   dat <- df()
-  dat[input$xcol] <- log10(dat[input$xcol])
   
+  dat[[xCol]] <- log10(dat[[xCol]])
   
-  #dat_1 <- dat[dat$cell == "easyRider",]
-  npars <- ifelse(input$npars == "all", "all", as.numeric(input$npars))
-  prueba <- nplr(x = as.numeric(unlist(dat[input$xcol])), y = as.numeric(unlist(dat[input$ycol])), npars=npars, useLog=FALSE)
-  B <- getPar(prueba)$params$bottom
-  TT <- getPar(prueba)$params$top
-  xmid <- getPar(prueba)$params$xmid
-  s <- getPar(prueba)$params$s
-  scal <- getPar(prueba)$params$scal
-  logistic <- function(x){
+  #dat[[yCol]] <- convertToProp(as.numeric(unlist(dat[[yCol]])), T0 = NULL, Ctrl = NULL)
+  
+  x <- dat[[xCol]]
+  x <- seq(min(x), max(x), length.out = length(dat[[compoundCol]])/length(unique(dat[[compoundCol]])))
+  gg <- data.frame()
+  cont <- 0
+  
+ 
+  for (i in df2){
+  
+  B <- getPar(i)$params$bottom
+  TT <- getPar(i)$params$top
+  xmid <- getPar(i)$params$xmid
+  s <- getPar(i)$params$s
+  scal <- getPar(i)$params$scal
+  
+  cont <- cont + 1
+  
+  for (n in x){
+  
    
-   (B+(TT-B)/(1+10^(scal*(xmid - x)))^s)
-  }
-  browser()
-  p1 <- ggplot(data = dat, aes_q(x=as.name(input$xcol), y=as.name(input$ycol), colour = as.name(input$zcol))) + geom_point() #+ facet_wrap(~df2(), scales = "free")
-  
-  for (i in 1:length(unique(df2()))) {
+   w <- logistic(n, B, TT, scal, xmid, s)
    
-   if (i<length(unique(df2()))){
-    
-    p1 <- paste(p1 + stat_function(fun = logistic(x)))
-   }
+   gg <- rbind(gg, c(cont, n, w))
    
-   if (i == length(unique(df2()))){
-    
-    
-
-  p1 <- p1 + stat_function(fun = logistic, colour = "black")
-   }
-  }
+   colnames(gg) <- colnames(dat)
   
-  #dat_1 <- dat[dat$cell == "Hurrycane",]
-  #prueba <- nplr(x = as.numeric(unlist(dat_1[input$xcol])), y = as.numeric(unlist(dat_1[input$ycol])), npars="all", useLog=FALSE)
-  #B1 <- getPar(prueba)$params$bottom
-  #TT1 <- getPar(prueba)$params$top
-  #xmid1 <- getPar(prueba)$params$xmid
-  #s1 <- getPar(prueba)$params$s
-  #scal1 <- getPar(prueba)$params$scal
+  }}
   
-  #logistic_1 <- function(x){
-   
-   #(B1+(TT1-B1)/(1+10^(scal1*(xmid1 - x)))^s1)
-  #}
+  gg[[compoundCol]] <- as.factor(gg[[compoundCol]])
   
-  #p1 <- p1 + stat_function(fun = logistic_1, colour = as.name(input$zcol))
+  levels(gg[[compoundCol]]) <- levels(dat[[compoundCol]])
+  
+ browser()
+  p1 <- ggplot(data = dat, aes(x=dat[[xCol]], y=dat[[yCol]])) + 
+   geom_point() 
+  
+  p1 <- p1 + geom_line(data = gg, aes(x = gg[[xCol]], y = gg[[yCol]], colour = gg[[compoundCol]])) +
+   stat_summary(fun.y = mean, color = "yellow", aes(group = dat[[compoundCol]]), show.legend = FALSE) +
+   stat_summary(fun.data = mean_se, geom = "errorbar") +
+   facet_grid(gg[[compoundCol]]~.) +
+   labs(x = xCol, y = yCol, legend = compoundCol)
   
   plot(p1)
   })
 
  
- #+ facet_wrap(~input$zcol, scales = "free") + stat_summary(fun.y = "mean", colour = "Red", geom = "point", size = 5) 
 
  #output$summary <- renderTable({
   #models <- data()
