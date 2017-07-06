@@ -76,7 +76,7 @@ shinyUI(
    uiOutput('modelNames'),
    uiOutput('selectBox'),
    
-<<<<<<< HEAD
+
    #SELECTBOX####
    withTags(
     div(class='col-sm-12',
@@ -89,17 +89,7 @@ shinyUI(
     )
    ),
    
-=======
-   #withTags(
-    #div(class = 'col-sm-12',
-     #   div(class = "row",
-      #      div(class="col-xs-12 radioText", "Select data"),
-       #     div(class="col-xs-12", selectInput("inselect", "Select Data", choices = "Pending upload")
-        #    )
-        #)
-    #)
-   #),
->>>>>>> 424ddf657da18176d039623de76ff31814b5ff64
+
   
    # SAVE OPTIONS
    withTags(
@@ -209,7 +199,6 @@ shinyUI(
               )
              )
     ), 
-<<<<<<< HEAD
     
     tabPanel("Content",
              withTags(
@@ -218,10 +207,9 @@ shinyUI(
                   tableOutput('content')
               )
              )
-    )
+    ),
     
-=======
->>>>>>> 424ddf657da18176d039623de76ff31814b5ff64
+
     
     tabPanel("Content",
              withTags(

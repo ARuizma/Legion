@@ -122,7 +122,7 @@ shinyServer(function(input, output, session) {
  output$plot <- renderPlot({
   if(is.null(test()))
    return(NULL)
-  
+  browser()
   models <- test()
   
   .multiCurve(models,
