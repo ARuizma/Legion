@@ -1,13 +1,12 @@
 library(shiny)
 library(XLConnect)
-library(colourpicker)
 library(nlstools)
 library(ggplot2)
 library(shinydashboard)
 library(nplr)
 
 options(shiny.error =browser)
-#options(shiny.error =recover)
+
  
 shinyServer(function(input, output, session) {
 
@@ -25,6 +24,7 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
  })
  
  return(df)
+ 
  
  })
  
@@ -46,10 +46,15 @@ compoundCol <- reactive({
   input$xcol
  })
  
+ xLog <- reactive({
+  df <- df()
+  log10(df[[xCol()]])
+ })
+ 
  yCol <- reactive ({
   input$ycol
  })
-
+ 
  df3 <- reactive({
   if(is.null(df()))
    return(NULL)
@@ -68,11 +73,15 @@ compoundCol <- reactive({
  df2 <- reactive({
   if(is.null(df()))
    return(NULL)
+  dt <- datalist2()
   models <- lapply(datalist2(), function(tmp){
-  x <- tmp[,xCol()]
+  x <- log10(tmp[,xCol()])
   y <- tmp[,yCol()]
+  x[x == -Inf] <- 0
+  if(!is.numeric(x) || !is.numeric(y))
+   return(NULL)
   npars <- ifelse(input$npars == "all", "all", as.numeric(input$npars))
-  nplr(x, y, npars = "all", useLog = TRUE)
+  nplr(x, y, npars = npars, useLog = FALSE)
  })
   models
  })
@@ -85,23 +94,21 @@ compoundCol <- reactive({
      return(NULL)
 
   compoundCol <- compoundCol()
-  
   xCol <- xCol()
-  
   yCol <- yCol()
-  
   df2 <- df2()
-  
   dat <- df()
   
   dat[[xCol]] <- log10(dat[[xCol]])
-
+  
+  dat[[xCol]][dat[[xCol]] == -Inf] <- 0
+ 
   x <- dat[[xCol]]
+  
   x <- seq(min(x), max(x), length.out = length(dat[[compoundCol]])/length(unique(dat[[compoundCol]])))
   gg <- data.frame()
   cont <- 0
   
- 
   for (i in df2){
   
   B <- getPar(i)$params$bottom
@@ -135,13 +142,11 @@ compoundCol <- reactive({
   p1 <- p1 + geom_line(data = gg, aes(x = gg[[xCol]], y = gg[[yCol]], colour = gg[[compoundCol]])) +
    stat_summary(fun.y = mean, color = "yellow", aes(group = dat2[[compoundCol]]), show.legend = FALSE) +
    stat_summary(fun.data = mean_se, geom = "errorbar") +
-   facet_grid(gg[[compoundCol]]~.) +
+   facet_grid(gg[[compoundCol]]~., scales = "free_y") +
    labs(x = xCol, y = yCol, legend = compoundCol)
   
   plot(p1)
   })
-
- 
 
  output$summary <- renderTable({
   
