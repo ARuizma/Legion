@@ -46,10 +46,17 @@ compoundCol <- reactive({
   input$xcol
  })
  
- yCol <- reactive({
+ yCol <- reactive ({
   input$ycol
  })
 
+ df3 <- reactive({
+  if(is.null(df()))
+   return(NULL)
+  df5 <- df()
+  df5[[yCol]] <- convertToProp(df5[[yCol]], T0 = NULL, Ctrl = NULL)
+ })
+ 
  datalist<- reactive ({
   df()[,input$zcol]
  })
@@ -58,14 +65,12 @@ compoundCol <- reactive({
   split(df(), datalist())
  })
  
- 
  df2 <- reactive({
   if(is.null(df()))
    return(NULL)
   models <- lapply(datalist2(), function(tmp){
   x <- tmp[,xCol()]
   y <- tmp[,yCol()]
-  y <- convertToProp(y, T0 = NULL, Ctrl = NULL)
   npars <- ifelse(input$npars == "all", "all", as.numeric(input$npars))
   nplr(x, y, npars = "all", useLog = TRUE)
  })
@@ -90,9 +95,7 @@ compoundCol <- reactive({
   dat <- df()
   
   dat[[xCol]] <- log10(dat[[xCol]])
-  
-  #dat[[yCol]] <- convertToProp(as.numeric(unlist(dat[[yCol]])), T0 = NULL, Ctrl = NULL)
-  
+
   x <- dat[[xCol]]
   x <- seq(min(x), max(x), length.out = length(dat[[compoundCol]])/length(unique(dat[[compoundCol]])))
   gg <- data.frame()
@@ -124,12 +127,13 @@ compoundCol <- reactive({
   
   levels(gg[[compoundCol]]) <- levels(dat[[compoundCol]])
   
- browser()
-  p1 <- ggplot(data = dat, aes(x=dat[[xCol]], y=dat[[yCol]])) + 
+  dat2 <- dat[order(match(dat[[compoundCol]], gg[[compoundCol]])),]
+  
+  p1 <- ggplot(data = dat2, aes(x=dat2[[xCol]], y=dat2[[yCol]], colour = gg[[compoundCol]])) + 
    geom_point() 
   
   p1 <- p1 + geom_line(data = gg, aes(x = gg[[xCol]], y = gg[[yCol]], colour = gg[[compoundCol]])) +
-   stat_summary(fun.y = mean, color = "yellow", aes(group = dat[[compoundCol]]), show.legend = FALSE) +
+   stat_summary(fun.y = mean, color = "yellow", aes(group = dat2[[compoundCol]]), show.legend = FALSE) +
    stat_summary(fun.data = mean_se, geom = "errorbar") +
    facet_grid(gg[[compoundCol]]~.) +
    labs(x = xCol, y = yCol, legend = compoundCol)
@@ -139,12 +143,26 @@ compoundCol <- reactive({
 
  
 
- #output$summary <- renderTable({
-  #models <- data()
-  #if(is.null(models))
-   #return(NULL)
-  #buildSummary(models)
- #})
+ output$summary <- renderTable({
+  
+  dat <- df()
+  df2 <- df2()
+  compoundCol <- compoundCol()
+  
+  if(is.null(df2))
+   return(NULL)
+  mySummary = list()
+  
+  for (i in df2) {
+   sumi <- summary.nplr(i)
+   mySummary <- append(mySummary, sumi)
+  }
+
+  names(mySummary) <- levels(dat[[compoundCol]])
+  
+  mySummary
+
+ }, include.rownames = TRUE)
  
 })
  
