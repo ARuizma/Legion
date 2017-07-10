@@ -36,7 +36,6 @@ shinyUI(
 
               #tags$br()
    
-)
 ),
 
 
@@ -50,8 +49,8 @@ shinyUI(
    menuItem("Tests", tabName = "test", icon = icon("th")),
 
    tags$br()
-)
-)
+
+),
 
  #MainPanel####
  
@@ -159,7 +158,7 @@ shinyUI(
              
    tabItem("summary",
            ("Data Summary")
-   )
+   ),
   
   #box(
    #title = "Uploaded Data",
@@ -223,4 +222,5 @@ shinyUI(
  )
    
  )
+)
 ))
