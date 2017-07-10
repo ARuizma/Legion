@@ -6,6 +6,7 @@ library(nlstools)
 library(ggplot2)
 library(shinydashboard)
 library(nplr)
+library(minpack.lm)
 source("helpers.R")
 
  
@@ -32,32 +33,44 @@ server = function(input, output, session) {
 
 #NLSTEST####
  
+ compoundCol <- reactive({
+  input$zcol
+ })
+ 
+ xCol <- reactive({
+  input$xcol
+ })
+ 
+ 
+ yCol <- reactive ({
+  input$ycol
+ })
  
  output$plot <- renderPlot({
 
 
   if(is.null(input$file1))
      return(NULL)
-  
+  form <- y ~ a + ((b-a) / (1 + ((x/c)^d)))
   dat <- df()
-  
- 
-  switch(input$plot_scaletype,
-         
-         normal = ggplot(dat, aes_q(x=as.name(input$xcol), y=as.name(input$ycol), colour = as.name(input$zcol))) +
+  compoundCol <- compoundCol()
+  xCol <- xCol()
+  yCol <- yCol()
+  dat[[xCol]] <- log10(dat[[xCol]])
+  dat[[xCol]][dat[[xCol]] == -Inf] <- 0
+  datos <- pki.app.s4s.get.starting.parameters(dat)
+  browser()
+  p2 <-   ggplot(dat, aes(x = dat[[xCol]], y=dat[[yCol]], colour = dat[[compoundCol]])) + 
           ggtitle("Curve Fitting") + theme(plot.title = element_text(hjust = 0.5)) +
-          geom_point() +
-          stat_summary(aes_q(y=as.name(input$ycol), group=as.name(input$zcol), colour = as.name(input$zcol)), fun.y = mean, geom = "line"),
-         
-         log =
-          ggplot(dat, aes_q(x=as.name(input$xcol), (y=as.name(input$ycol)), colour = as.name(input$zcol))) + 
-          ggtitle("Curve Fitting") + theme(plot.title = element_text(hjust = 0.5)) +
-          scale_x_log10() + 
-          geom_point() #+
-          #geom_smooth(method = 'nls', formula = y ~ a + ((b-a) / (1 + ((x / c) ^ d))), method.args = list(start= list(a = a, b = b, c = c, d = d)), se = FALSE, inherit.aes = TRUE)
-          #stat_summary(aes_q(y=as.name(input$ycol), group=as.name(input$zcol), colour = as.name(input$zcol)), fun.y = mean, geom = "line")
+          geom_point() 
+          
   
-         )
+  p2 <- p2 + geom_smooth(method = 'nlsLM', formula = form, method.args = list(datos), se = FALSE) +
+  stat_summary(fun.y = mean, geom="point", color = "yellow", aes(group=dat[[compoundCol]]), show.legend = FALSE) +
+  facet_grid(dat[[compoundCol]]~., scales = "free_y") +
+  labs( x = xCol, y = yCol, colour = compoundCol)
+  
+  plot(p2)       
  
  })
 }
