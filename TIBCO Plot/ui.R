@@ -41,6 +41,7 @@ shinyUI(
           box(
            title = "Customize Data Output",
            
+           
            box(
             title = "Log",
             selectInput("plot_scaletype", "Scale type",

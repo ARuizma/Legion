@@ -5,11 +5,12 @@ library(ggplot2)
 library(shinydashboard)
 library(nplr)
 
-options(shiny.error =browser)
 
- 
+
 shinyServer(function(input, output, session) {
-
+ 
+ options(warn = -1)
+ 
  df <- reactive ({
   infile <- input$file1
   if(is.null(infile))
@@ -32,10 +33,12 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
  
  #NPLRTEST####
  
+ 
  logistic <- function(x, B, TT, scal, xmid, s){
   
   (B+(TT-B)/(1+10^(scal*(xmid - x)))^s)
  }
+ 
  
  
 compoundCol <- reactive({
@@ -55,12 +58,12 @@ compoundCol <- reactive({
   input$ycol
  })
  
- df3 <- reactive({
+ df3 <- try(reactive({
   if(is.null(df()))
    return(NULL)
   df5 <- df()
   df5[[yCol]] <- convertToProp(df5[[yCol]], T0 = NULL, Ctrl = NULL)
- })
+ }))
  
  datalist<- reactive ({
   df()[,input$zcol]
@@ -70,7 +73,7 @@ compoundCol <- reactive({
   split(df(), datalist())
  })
  
- df2 <- reactive({
+ df2 <-  try(reactive({
   if(is.null(df()))
    return(NULL)
   dt <- datalist2()
@@ -81,13 +84,15 @@ compoundCol <- reactive({
   if(!is.numeric(x) || !is.numeric(y))
    return(NULL)
   npars <- ifelse(input$npars == "all", "all", as.numeric(input$npars))
-  nplr(x, y, npars = npars, useLog = FALSE)
+  try(nplr(x, y, npars = npars, useLog = FALSE, silent = TRUE))
  })
   models
- })
+ }))
  
-
+ 
  output$plot <- renderPlot({
+  
+  
   
   if(is.null(df()))
    
@@ -109,7 +114,7 @@ compoundCol <- reactive({
   gg <- data.frame()
   cont <- 0
   
-  for (i in df2){
+  try(for (i in df2){
   
   B <- getPar(i)$params$bottom
   TT <- getPar(i)$params$top
@@ -126,9 +131,9 @@ compoundCol <- reactive({
    
    gg <- rbind(gg, c(cont, n, w))
    
-   colnames(gg) <- colnames(dat)
+   colnames(gg) <- as.character(c(compoundCol, xCol, yCol))
   
-  }}
+  }})
   
   gg[[compoundCol]] <- as.factor(gg[[compoundCol]])
   
@@ -136,18 +141,20 @@ compoundCol <- reactive({
   
   dat2 <- dat[order(match(dat[[compoundCol]], gg[[compoundCol]])),]
   
-  p1 <- ggplot(data = dat2, aes(x=dat2[[xCol]], y=dat2[[yCol]], colour = gg[[compoundCol]])) + 
+  p1 <- ggplot(data = dat2, aes(x=dat2[[xCol]], y=dat2[[yCol]], colour = gg[[compoundCol]]), show.legend = FALSE) + 
    geom_point() 
   
-  p1 <- p1 + geom_line(data = gg, aes(x = gg[[xCol]], y = gg[[yCol]], colour = gg[[compoundCol]])) +
+  p1 <- try(p1 + geom_line(data = gg, aes(x = gg[[xCol]], y = gg[[yCol]], colour = gg[[compoundCol]]), show.legend = FALSE) +
    stat_summary(fun.y = mean, color = "yellow", aes(group = dat2[[compoundCol]]), show.legend = FALSE) +
-   stat_summary(fun.data = mean_se, geom = "errorbar") +
+   stat_summary(fun.data = mean_se, geom = "errorbar", show.legend = FALSE) +
    facet_grid(gg[[compoundCol]]~., scales = "free_y") +
-   labs(x = xCol, y = yCol, legend = compoundCol)
+   labs(x = xCol, y = yCol, colour = compoundCol))
   
-  plot(p1)
+  try(plot(p1))
+  
   })
 
+ 
  output$summary <- renderTable({
   
   dat <- df()
@@ -168,6 +175,8 @@ compoundCol <- reactive({
   mySummary
 
  }, include.rownames = TRUE)
+ })
  
-})
+
+
  
