@@ -17,7 +17,7 @@ shinyUI(
   
   sidebarMenu(
    
-<<<<<<< HEAD
+
    menuItem("CurveFitting", tabName = "curvefitting", icon = icon("dashboard"),
             
             menuSubItem("NPLR", tabName = "nplr", icon = icon("dashboard")),
@@ -51,7 +51,7 @@ shinyUI(
 
    tags$br()
 )
-),
+)
 
  #MainPanel####
  
