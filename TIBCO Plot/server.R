@@ -4,12 +4,10 @@ library(nlstools)
 library(ggplot2)
 library(shinydashboard)
 library(nplr)
-
+library(DT)
 
 
 shinyServer(function(input, output, session) {
- 
- options(warn = -1)
  
  df <- reactive ({
   infile <- input$file1
@@ -26,21 +24,21 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
  
  return(df)
  
- 
  })
  
- output$content<-renderTable({df()})
+ output$content<-DT::renderDataTable({
+  
+  cont <- df()
+  
+  DT::datatable(cont, options = list(scrollX = TRUE, scrollY = TRUE))})
  
- #NPLRTEST####
- 
+ #NPLR####
  
  logistic <- function(x, B, TT, scal, xmid, s){
   
   (B+(TT-B)/(1+10^(scal*(xmid - x)))^s)
  }
- 
- 
- 
+
 compoundCol <- reactive({
  input$zcol
 })
@@ -89,11 +87,8 @@ compoundCol <- reactive({
   models
  }))
  
- 
- output$plot <- renderPlot({
-  
-  
-  
+ output$nplrplot <- renderPlot({
+
   if(is.null(df()))
    
      return(NULL)
@@ -125,8 +120,7 @@ compoundCol <- reactive({
   cont <- cont + 1
   
   for (n in x){
-  
-   
+ 
    w <- logistic(n, B, TT, scal, xmid, s)
    
    gg <- rbind(gg, c(cont, n, w))
@@ -147,15 +141,15 @@ compoundCol <- reactive({
   p1 <- try(p1 + geom_line(data = gg, aes(x = gg[[xCol]], y = gg[[yCol]], colour = gg[[compoundCol]]), show.legend = FALSE) +
    stat_summary(fun.y = mean, color = "yellow", aes(group = dat2[[compoundCol]]), show.legend = FALSE) +
    stat_summary(fun.data = mean_se, geom = "errorbar", show.legend = FALSE) +
-   facet_grid(gg[[compoundCol]]~., scales = "free_y") +
-   labs(x = xCol, y = yCol, colour = compoundCol))
+   facet_wrap(~gg[[compoundCol]], scales = "free_y", dir = "v") +
+   guides(color = FALSE) +
+   labs(x = xCol, y = yCol))
   
   try(plot(p1))
   
   })
 
- 
- output$summary <- renderTable({
+ output$nplrsummary <- DT::renderDataTable({
   
   dat <- df()
   df2 <- df2()
@@ -169,14 +163,14 @@ compoundCol <- reactive({
    sumi <- summary.nplr(i)
    mySummary <- append(mySummary, sumi)
   }
-
+  
+  mySummary <- as.data.frame(mySummary)
+  
   names(mySummary) <- levels(dat[[compoundCol]])
   
-  mySummary
-
- }, include.rownames = TRUE)
+  mySummary <- t(mySummary)
+  
+  DT::datatable(mySummary, options = list(scrollX = TRUE))
+  
  })
- 
-
-
- 
+ })
