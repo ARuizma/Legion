@@ -141,7 +141,7 @@ compoundCol <- reactive({
   
   p1 <- ggplot(data = dat2, aes(x=dat2[[xCol]], y=dat2[[yCol]], colour = gg[[compoundCol]]), show.legend = FALSE) + 
    geom_point() 
-  browser()
+
   p1 <- try(p1 + geom_line(data = gg, aes(x = gg[[xCol]], y = gg[[yCol]], colour = gg[[compoundCol]]), show.legend = FALSE) +
    stat_summary(fun.y = mean, color = "yellow", aes(group = dat2[[compoundCol]]), show.legend = FALSE) +
    stat_summary(fun.data = mean_se, geom = "errorbar", show.legend = FALSE) +

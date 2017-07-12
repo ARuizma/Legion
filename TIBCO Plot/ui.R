@@ -120,6 +120,7 @@ shinyUI(
   box(
    title = "Data Content",
    collapsible = TRUE,
+   collapsed = TRUE,
    DT::dataTableOutput("content"),width = 8),
   
   #PLOT#####
