@@ -42,19 +42,22 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
 compoundCol <- reactive({
  input$zcol
 })
- 
+
  xCol <- reactive({
   input$xcol
  })
- 
- xLog <- reactive({
-  df <- df()
-  log10(df[[xCol()]])
- })
- 
+
  yCol <- reactive ({
   input$ycol
  })
+ 
+ var <- reactive({
+  xCol <- xCol()
+  dat <- df()
+ dat[[xCol]][dat[[xCol]]==0] <- NA
+ (min(dat[[xCol]], na.rm = TRUE)/2)
+ })
+  
  
  df3 <- try(reactive({
   if(is.null(df()))
@@ -78,7 +81,7 @@ compoundCol <- reactive({
   models <- lapply(datalist2(), function(tmp){
   x <- log10(tmp[,xCol()])
   y <- tmp[,yCol()]
-  x[x == -Inf] <- 0
+  x[x == -Inf] <- log10(var())
   if(!is.numeric(x) || !is.numeric(y))
    return(NULL)
   npars <- ifelse(input$npars == "all", "all", as.numeric(input$npars))
@@ -98,10 +101,11 @@ compoundCol <- reactive({
   yCol <- yCol()
   df2 <- df2()
   dat <- df()
+  var <- var()
   
   dat[[xCol]] <- log10(dat[[xCol]])
   
-  dat[[xCol]][dat[[xCol]] == -Inf] <- 0
+  dat[[xCol]][dat[[xCol]] == -Inf] <- log10(var)
  
   x <- dat[[xCol]]
   
@@ -137,7 +141,7 @@ compoundCol <- reactive({
   
   p1 <- ggplot(data = dat2, aes(x=dat2[[xCol]], y=dat2[[yCol]], colour = gg[[compoundCol]]), show.legend = FALSE) + 
    geom_point() 
-  
+  browser()
   p1 <- try(p1 + geom_line(data = gg, aes(x = gg[[xCol]], y = gg[[yCol]], colour = gg[[compoundCol]]), show.legend = FALSE) +
    stat_summary(fun.y = mean, color = "yellow", aes(group = dat2[[compoundCol]]), show.legend = FALSE) +
    stat_summary(fun.data = mean_se, geom = "errorbar", show.legend = FALSE) +
