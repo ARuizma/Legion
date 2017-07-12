@@ -20,9 +20,9 @@ server = function(input, output, session) {
  df<- read.csv(infile$datapath, header=input$header, sep=input$sep, check.names = FALSE)
  
  observe({
-  z <- updateSelectInput(session, 'zcol', choices = names(df), selected=names(df)[1])
-  x <- updateSelectInput(session, 'xcol', choices = names(df), selected=names(df)[2])
-  y <- updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
+  updateSelectInput(session, 'zcol', choices = names(df), selected=names(df)[1])
+  "x" <- updateSelectInput(session, 'xcol', choices = names(df), selected=names(df)[2])
+  "y" <- updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
  })
  
  return(df)
@@ -56,19 +56,28 @@ server = function(input, output, session) {
   compoundCol <- compoundCol()
   xCol <- xCol()
   yCol <- yCol()
+  names(dat)[names(dat) == xCol] <- "x"
+  names(dat)[names(dat) == yCol] <- "y"
+  names(dat)[names(dat) == compoundCol] <- "Compound"
+  xCol <- "x"
+  yCol <- "y"
+  compoundCol <- "Compound"
   dat[[xCol]] <- log10(dat[[xCol]])
-  dat[[xCol]][dat[[xCol]] == -Inf] <- 0
+  dat[[xCol]][dat[[xCol]] == -Inf] <- NULL
+
   datos <- pki.app.s4s.get.starting.parameters(dat)
-  browser()
-  p2 <-   ggplot(dat, aes(x = dat[[xCol]], y=dat[[yCol]], colour = dat[[compoundCol]])) + 
+  
+  p2 <-   ggplot(dat, aes(x = x, y=y, color = Compound)) + 
           ggtitle("Curve Fitting") + theme(plot.title = element_text(hjust = 0.5)) +
           geom_point() 
           
+          
+ 
+  p2 <- p2 + geom_smooth(data = dat, method = 'nlsLM', formula = form, method.args = list(datos), se = FALSE) +
+  stat_summary(fun.y = mean, geom="point", color = "yellow", aes(group=Compound), show.legend = FALSE) +
+  facet_wrap(~Compound, scales = "free_y", dir = "v") +
+  labs( x = "Concentration", y = "Data", colour = compoundCol) 
   
-  p2 <- p2 + geom_smooth(method = 'nlsLM', formula = form, method.args = list(datos), se = FALSE) +
-  stat_summary(fun.y = mean, geom="point", color = "yellow", aes(group=dat[[compoundCol]]), show.legend = FALSE) +
-  facet_grid(dat[[compoundCol]]~., scales = "free_y") +
-  labs( x = xCol, y = yCol, colour = compoundCol)
   
   plot(p2)       
  

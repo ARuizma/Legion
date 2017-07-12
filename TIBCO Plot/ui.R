@@ -34,7 +34,7 @@ shinyUI(
   
   tabItem("dashboard",
           fluidRow(
-          box(plotOutput("plot", height = 250)),
+          box(plotOutput("plot", height = 500)),
           
           box(
            title = "Customize Data Output",
