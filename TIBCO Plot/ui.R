@@ -109,8 +109,9 @@ shinyUI(
    ),
              
    tabItem("summary",
+           box(
            title = "Data Summary",
-           verbatimTextOutput('summary')
+           tableOutput("summary"))
    )
    
  )
