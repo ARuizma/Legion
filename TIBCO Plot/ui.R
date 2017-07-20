@@ -58,7 +58,7 @@ shinyUI(
                    
                    box(
                     title = "Upload File", width = NULL,
-                    fileInput('file1', 'Choose File with .csv format',
+                    fileInput('file1', 'Choose File with .csv, .tsv, .txt format',
                               accept=c('text/csv', 
                                        'text/comma-separated-values, text/plain', 
                                        '.csv')
