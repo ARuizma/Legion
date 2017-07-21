@@ -76,7 +76,7 @@ shinyUI(
                     title = "Data Content",
                     collapsible = TRUE,
                     collapsed = FALSE,
-                    DT::dataTableOutput("content", height = 750),width = 8, height = 750)
+                    DT::dataTableOutput("content", height = 750),width = 9, height = 750)
            )),
    
  #######################################################CURVEFITTING##########################################
