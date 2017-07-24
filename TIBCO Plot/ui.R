@@ -23,10 +23,8 @@ shinyUI(
 
    menuItem("CurveFitting", tabName = "curvefitting", icon = icon("dashboard")),
    
-   menuItem("TSNE", tabName = "tsne", icon = icon("th"),
-            
-            menuSubItem("Custom", tabName = "customts", icon = icon("dashboard"))),
-  
+   menuItem("TSNE", tabName = "tsne", icon = icon("th")),
+   
    menuItem("PHB", tabName = "phb", icon = icon("dashboard"))
    
 )),
@@ -87,12 +85,18 @@ shinyUI(
            column(width = 3,
                   
                   #SETTINGSTAB####
-                  tabBox(title = "Settings",
+                  box(title = "Settings",
                           width = NULL,
                          tabPanel(" ",
                            
                            box(
-                            title = "Choose Number of Parameters", width = NULL,
+                            title = "Select Model", width = NULL,
+                            checkboxInput("nplr_checkbox", label = "NPLR", value = FALSE),
+                            checkboxInput("nls_checkbox", label = "NLS", value = FALSE)
+                           ),
+
+                           box(
+                            title = "Choose Number of Parameters", br(), "(NPLR only)", width = NULL,
                             selectInput('npars', '', c("Best" = 'all',
                                                        "2" = '2',
                                                        "3" = '3',
@@ -121,54 +125,28 @@ shinyUI(
                            )))),
            column(width = 9,
   
- tabBox(title = "Visualization", width = NULL,
+ box(title = "Visualization", width = NULL,
   
  #######################################################NPLR##########################################
   
- tabPanel("NPLR",
   
   #PLOT#####
          
    box(
-   title = "Plot NPLR",
+   title = "Plot",
    collapsible = TRUE,
    collapsed = FALSE,
-   plotOutput("nplrplot",height = 500), width = NULL),
+   plotOutput("plot",height = 500), width = NULL),
   
   #SUMMARY####
   
   box(
-   title = "Summary NPLR",
+   title = "Summary",
    collapsible = TRUE,
    collapsed = FALSE,
-   DT::dataTableOutput("nplrsummary"), width = NULL
+   DT::dataTableOutput("summary"), width = NULL
        
-  )),
-  
- ###########################################NLS####################################### 
-  
- tabPanel("NLS",
-         
-          #PLOT#####
-          
-          box(
-           title = "Plot NLS",
-           collapsible = TRUE,
-           collapsed = FALSE,
-           plotOutput("nlsplot",height = 500), width = NULL),
-          
-          #SUMMARY####
-          
-          box(
-           title = "Summary NLS",
-           collapsible = TRUE,
-           collapsed = FALSE,
-           DT::dataTableOutput("nlssummary"), width = NULL
-          
-         )
-         
- )
-       
+  )
 )))
 ))
 ))
