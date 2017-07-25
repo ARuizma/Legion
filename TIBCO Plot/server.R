@@ -127,6 +127,9 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
   compoundCol <- compoundCol()
   xCol <- xCol()
   yCol <- yCol()
+  xCol <- "x"
+  yCol <- "y"
+  compoundCol <- "Compound"
   dat <- df()
   df2 <- df2()#NPLRMODELS
   dat2<- dat2()#NLSMODELS
@@ -139,7 +142,7 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
 #####LOOPS####################
   
   try(for (i in df2){
-  browser()
+  
   B <- getPar(i)$params$bottom
   TT <- getPar(i)$params$top
   xmid <- getPar(i)$params$xmid
@@ -153,52 +156,52 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
    w <- logistic(n, B, TT, scal, xmid, s)
    
    nplr_df <- rbind(nplr_df, c(cont, n, w))
-   
-   colnames(nplr_df) <- as.character(c(compoundCol, xCol, yCol))
   
   }})
   
   for(i in dat2) {
-   browser()
+   
    sp_i<- pki.app.s4s.get.starting.parameters(i)
    
    fit <- pki.app.s4s.CurveFitting.Fit.Logistic(i, sp_i)
    
-   x <- i[[xCol]]
+   x <- i[["x"]]
    
    yfit <- predict(fit$fit, newdata = x)
    
-   gg2<- cbind(i[[compoundCol]], x, yfit)
+   gg2<- cbind(i[["Compound"]], x, yfit)
    
    nls_df <- rbind(nls_df, gg2)
    
   }
   
   ######DFARRANGEMENTS#####
+ 
+  colnames(nplr_df) <- as.character(c(compoundCol, xCol, yCol))
   
   nplr_df[[compoundCol]] <- as.factor(nplr_df[[compoundCol]])
   
-  levels(nplr_df[[compoundCol]]) <- levels(dat[[compoundCol]])
+  levels(nplr_df[[compoundCol]]) <- levels(DFunction[[compoundCol]])
   
   colnames(nls_df) <- as.character(c(compoundCol, xCol, yCol))
   
   nls_df[[compoundCol]] <- as.factor(nls_df[[compoundCol]])
   
-  levels(nls_df[[compoundCol]]) <- levels(dat[[compoundCol]])
+  levels(nls_df[[compoundCol]]) <- levels(DFunction[[compoundCol]])
   
-  dat <- dat[order(match(dat[[compoundCol]], nls_df[[compoundCol]])),]
-  
+  dat <- dat[order(match(dat[[input$zcol]], nls_df[[compoundCol]])),]
+  browser()
   ######PLOTS##############
-  try(plot <- ggplot(data = dat, aes(x=log10(x), y=y), show.legend = FALSE) + 
+  try(plot <- ggplot(data = dat, aes(x = log10(dat[[input$xcol]]), y = dat[[input$ycol]], show.legend = FALSE)) + 
    geom_point() +
-   stat_summary(fun.y = mean, color = "black", aes(group = Compound), show.legend = FALSE, geom = "point") +
+   stat_summary(fun.y = mean, color = "black", aes(group = input$zcol), show.legend = FALSE, geom = "point") +
    stat_summary(fun.data = mean_se, geom = "errorbar", show.legend = FALSE) +
-   facet_wrap(~Compound, scales = "free", dir = "v") +
+   facet_wrap(~dat[[input$zcol]], scales = "free", dir = "v") +
    guides(color = FALSE) +
    labs(x = input$xcol, y = input$ycol))
   
-  nplr_plot <- geom_line(data = nplr_df, aes(x,y, color = "green"), show.legend = FALSE)
-  nls_plot <- geom_line(data = nls_df, aes(log10(x), y, color = "blue"), show.legend = FALSE)
+  nplr_plot <- geom_line(data = nplr_df, aes(x,y, colour = "green"), show.legend = FALSE)
+  nls_plot <- geom_line(data = nls_df, aes(log10(x), y, colour = "blue"), show.legend = FALSE)
 
   if(input$nplr_checkbox ==TRUE) {
    plot <- plot + nplr_plot}
