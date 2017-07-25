@@ -47,56 +47,9 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
   input$ycol
  })
  
- ##############################################################NPLR##################################################################
- 
- logistic <- function(x, B, TT, scal, xmid, s){
-  
-  (B+(TT-B)/(1+10^(scal*(xmid - x)))^s)
- }
- 
- var <- reactive({
-  xCol <- xCol()
-  dat <- df()
- dat[[xCol]][dat[[xCol]]==0] <- NA
- (min(dat[[xCol]], na.rm = TRUE)/2)
- })
-  
- 
- df3 <- try(reactive({
-  if(is.null(df()))
-   return(NULL)
-  df5 <- df()
-  df5[[yCol]] <- convertToProp(df5[[yCol]], T0 = NULL, Ctrl = NULL)
- }))
- 
- datalist<- reactive ({
-  df()[,input$zcol]
- })
- 
- datalist2 <- reactive({
-  split(df(), datalist())
- })
- 
- df2 <-  try(reactive({
-  if(is.null(df()))
-   return(NULL)
-  dt <- datalist2()
-  models <- lapply(datalist2(), function(tmp){
-  x <- log10(tmp[,xCol()])
-  y <- tmp[,yCol()]
-  x[x == -Inf] <- log10(var())
-  if(!is.numeric(x) || !is.numeric(y))
-   return(NULL)
-  npars <- ifelse(input$npars == "all", "all", as.numeric(input$npars))
-  try(nplr(x, y, npars = npars, useLog = FALSE, silent = TRUE))
- })
-  models
- }))
- 
- 
  ##################################NLS###########################################
  
- DFunction <- reactive({
+ DFunction <- try(reactive({
   if(is.null(input$file1))
    return(NULL)
   
@@ -123,17 +76,45 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
   DFunction <- unique(DFunction)
   
   return(DFunction)
- })
+  
+ }))
  
- dat2 <- reactive({
+ dat2 <- try(reactive({
   DFunction <- DFunction()
-  compoundCol <- compoundCol()
   if(is.null(DFunction))
    return(NULL)
-  
   split(DFunction, DFunction$Compound)
- })
+  }))
  
+ ##############################################################NPLR##################################################################
+ 
+ logistic <- function(x, B, TT, scal, xmid, s){
+  
+  (B+(TT-B)/(1+10^(scal*(xmid - x)))^s)
+ }
+ 
+ df3 <- try(reactive({
+  if(is.null(df()))
+   return(NULL)
+  df5 <- df()
+  df5[[yCol]] <- convertToProp(df5[[yCol]], T0 = NULL, Ctrl = NULL)
+ }))
+ 
+ df2 <-  try(reactive({
+
+  if(is.null(df()))
+   return(NULL)
+  dt <- dat2()
+  models <- lapply(dt, function(tmp){
+  x <- tmp[,"x"]
+  y <- tmp[,"y"]
+  if(!is.numeric(x) || !is.numeric(y))
+   return(NULL)
+  npars <- ifelse(input$npars == "all", "all", as.numeric(input$npars))
+  try(nplr(x, y, npars = npars, useLog = TRUE, silent = TRUE))
+ })
+  models
+ }))
  
  #####PLOT################################
  
@@ -149,17 +130,8 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
   dat <- df()
   df2 <- df2()#NPLRMODELS
   dat2<- dat2()#NLSMODELS
-  var <- var()
-  names(dat)[names(dat) == xCol] <- "x"
-  names(dat)[names(dat) == yCol] <- "y"
-  names(dat)[names(dat) == compoundCol] <- "Compound"
-  xCol <- "x"
-  yCol <- "y"
-  compoundCol <- "Compound"
-  dat[[xCol]] <- log10(dat[[xCol]])
-  dat[[xCol]][dat[[xCol]] == -Inf] <- log10(var)
-  x <- dat[[xCol]]
-  x <- seq(min(x), max(x), length.out = length(dat[[compoundCol]])/length(unique(dat[[compoundCol]])))
+  DFunction <- DFunction()
+  x <- log10(DFunction[["x"]])
   nplr_df <- data.frame()
   cont <- 0
   nls_df<-data.frame()
@@ -167,7 +139,7 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
 #####LOOPS####################
   
   try(for (i in df2){
-  
+  browser()
   B <- getPar(i)$params$bottom
   TT <- getPar(i)$params$top
   xmid <- getPar(i)$params$xmid
@@ -187,7 +159,7 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
   }})
   
   for(i in dat2) {
-   
+   browser()
    sp_i<- pki.app.s4s.get.starting.parameters(i)
    
    fit <- pki.app.s4s.CurveFitting.Fit.Logistic(i, sp_i)
@@ -217,13 +189,13 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
   dat <- dat[order(match(dat[[compoundCol]], nls_df[[compoundCol]])),]
   
   ######PLOTS##############
-  plot <- ggplot(data = dat, aes(x=x, y=y), show.legend = FALSE) + 
+  try(plot <- ggplot(data = dat, aes(x=log10(x), y=y), show.legend = FALSE) + 
    geom_point() +
    stat_summary(fun.y = mean, color = "black", aes(group = Compound), show.legend = FALSE, geom = "point") +
    stat_summary(fun.data = mean_se, geom = "errorbar", show.legend = FALSE) +
    facet_wrap(~Compound, scales = "free", dir = "v") +
    guides(color = FALSE) +
-   labs(x = input$xcol, y = input$ycol)
+   labs(x = input$xcol, y = input$ycol))
   
   nplr_plot <- geom_line(data = nplr_df, aes(x,y, color = "green"), show.legend = FALSE)
   nls_plot <- geom_line(data = nls_df, aes(log10(x), y, color = "blue"), show.legend = FALSE)
@@ -271,16 +243,15 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
    return(NULL)
   mySummary = list()
   
-  for (i in df2) {
+  try(for (i in df2) {
    sumi <- summary.nplr(i)
-   exp50 <- exp(as.numeric(sumi$value[["IC50"]]))
 
    val.parameters<- data.frame("", input$ycol, sumi$value[["params.bottom"]], sumi$value[["params.top"]],
-                                sumi$value[["IC50"]], sumi$value[["params.scal"]], sumi$value[["weightedGOF"]], exp50,stringsAsFactors=FALSE)
+                                sumi$value[["Log10(IC50)"]], sumi$value[["params.scal"]], sumi$value[["weightedGOF"]], sumi$value[["IC50"]] ,stringsAsFactors=FALSE)
    colnames(val.parameters)<-c("Compound","Feature","min","max","LoggedX50","Hill","r2","Inflexion")
    fit.parameters.nplr<-rbind(fit.parameters.nplr, val.parameters)
-  }
-  for(i in dat2) {
+  })
+  try(for(i in dat2) {
    
    sp_i<- pki.app.s4s.get.starting.parameters(i)
    
@@ -290,13 +261,13 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
                               fit$B,fit$A,log10(fit$C),fit$D,fit$RSquared,fit$C, stringsAsFactors=FALSE)
    colnames(val.parameters)<-c("Compound","Feature","min","max","LoggedX50","Hill","r2","Inflexion")
    fit.parameters.nls<-rbind(fit.parameters.nls, val.parameters)
-  }
+  })
 
   fit.parameters.nplr$Compound <- as.factor(names(df2))
   
-  fit.parameters.nplr[,c(3:7)]<- sapply(fit.parameters.nplr[,c(3:7)], as.character)
+  fit.parameters.nplr[,c(3:8)]<- sapply(fit.parameters.nplr[,c(3:8)], as.character)
   
-  fit.parameters.nplr[,c(3:7)]<- sapply(fit.parameters.nplr[,c(3:7)], as.numeric)
+  fit.parameters.nplr[,c(3:8)]<- sapply(fit.parameters.nplr[,c(3:8)], as.numeric)
 
   mySummary.nplr<-fit.parameters.nplr
   
@@ -315,6 +286,6 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
   if((input$nls_checkbox == TRUE) & (input$nplr_checkbox == TRUE)) {
    mySummary <- do.call("rbind",list(mySummary.nplr, mySummary.nls))}
   
-  DT::datatable(mySummary, options = list(scrollX = TRUE))
+  try(DT::datatable(mySummary, options = list(scrollX = TRUE)))
  })
 })
