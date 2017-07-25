@@ -1,6 +1,7 @@
 library(shiny)
 library(shinydashboard)
 library(DT)
+library(plotly)
 
 shinyUI(
  
@@ -74,7 +75,12 @@ shinyUI(
                     title = "Data Content",
                     collapsible = TRUE,
                     collapsed = FALSE,
-                    DT::dataTableOutput("content", height = 750),width = 9, height = 750)
+                    DT::dataTableOutput("content", height = 500),width = 9, height = 500),
+            box(
+             title = "Data Histogram",
+             collapsible = TRUE,
+             collapsed = FALSE,
+             plotOutput("hist", height = 500), width = 9, height = 500)
            )),
    
  #######################################################CURVEFITTING##########################################
@@ -123,9 +129,9 @@ shinyUI(
                             selectInput('ycol', '', choices = "Pending Upload"
                             )
                            )))),
-           column(width = 9,
+
   
- box(title = "Visualization", width = NULL,
+ tabBox(title = "Visualization", width = 9,
   
  #######################################################NPLR##########################################
   
@@ -136,7 +142,7 @@ shinyUI(
    title = "Plot",
    collapsible = TRUE,
    collapsed = FALSE,
-   plotOutput("plot",height = 500), width = NULL),
+   plotlyOutput("plot"), height=500, width = 12),
   
   #SUMMARY####
   
@@ -144,10 +150,10 @@ shinyUI(
    title = "Summary",
    collapsible = TRUE,
    collapsed = FALSE,
-   DT::dataTableOutput("summary"), width = NULL
+   DT::dataTableOutput("summary"), width = 12
        
   )
-)))
+))
 ))
 ))
 )

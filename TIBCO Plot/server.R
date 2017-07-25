@@ -6,6 +6,7 @@ library(shinydashboard)
 library(nplr)
 library(DT)
 library(minpack.lm)
+library(plotly)
 source("helpers.R")
 
 shinyServer(function(input, output, session) {
@@ -35,6 +36,8 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
   
   DT::datatable(cont, options = list(scrollX = TRUE, scrollY = TRUE))})
  
+
+ 
  compoundCol <- reactive({
   input$zcol
  })
@@ -45,6 +48,12 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
  
  yCol <- reactive ({
   input$ycol
+ })
+ 
+ output$hist <- renderPlot({
+  his <- df()
+  xCol <- xCol()
+  ggplot(data = his, aes(his[[yCol()]])) + geom_histogram()
  })
  
  ##################################NLS###########################################
@@ -118,7 +127,7 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
  
  #####PLOT################################
  
- output$plot <- renderPlot({
+ output$plot <- renderPlotly({
 
   if(is.null(df()))
    
@@ -127,14 +136,18 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
   compoundCol <- compoundCol()
   xCol <- xCol()
   yCol <- yCol()
+  dat <- df()
+  names(dat)[names(dat) == xCol] <- "x"
+  names(dat)[names(dat) == yCol] <- "y"
+  names(dat)[names(dat) == compoundCol] <- "Compound"
   xCol <- "x"
   yCol <- "y"
   compoundCol <- "Compound"
-  dat <- df()
   df2 <- df2()#NPLRMODELS
   dat2<- dat2()#NLSMODELS
   DFunction <- DFunction()
   x <- log10(DFunction[["x"]])
+  x <- seq(min(x), max(x), length.out = length(dat[[compoundCol]])/length(unique(dat[[compoundCol]])))
   nplr_df <- data.frame()
   cont <- 0
   nls_df<-data.frame()
@@ -181,35 +194,47 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
   
   nplr_df[[compoundCol]] <- as.factor(nplr_df[[compoundCol]])
   
-  levels(nplr_df[[compoundCol]]) <- levels(DFunction[[compoundCol]])
+  levels(nplr_df[[compoundCol]]) <- levels(dat[[compoundCol]])
   
   colnames(nls_df) <- as.character(c(compoundCol, xCol, yCol))
   
   nls_df[[compoundCol]] <- as.factor(nls_df[[compoundCol]])
   
-  levels(nls_df[[compoundCol]]) <- levels(DFunction[[compoundCol]])
+  levels(nls_df[[compoundCol]]) <- levels(dat[[compoundCol]])
   
-  dat <- dat[order(match(dat[[input$zcol]], nls_df[[compoundCol]])),]
-  browser()
+  dat <- dat[order(match(dat[[compoundCol]], nls_df[[compoundCol]])),]
+
+# browser()
   ######PLOTS##############
-  try(plot <- ggplot(data = dat, aes(x = log10(dat[[input$xcol]]), y = dat[[input$ycol]], show.legend = FALSE)) + 
+  try(plot <- ggplot(data = dat, aes(x = log10(x), y = y)) + 
    geom_point() +
-   stat_summary(fun.y = mean, color = "black", aes(group = input$zcol), show.legend = FALSE, geom = "point") +
-   stat_summary(fun.data = mean_se, geom = "errorbar", show.legend = FALSE) +
-   facet_wrap(~dat[[input$zcol]], scales = "free", dir = "v") +
-   guides(color = FALSE) +
+   stat_summary(fun.y = mean, color = "yellow", aes(group = Compound), geom = "point", size = 1.25) +
+   stat_summary(fun.data = mean_se, geom = "errorbar", size = 1.25) +
+   facet_wrap(~Compound, scales = "free", dir = "v") +
    labs(x = input$xcol, y = input$ycol))
+   
   
-  nplr_plot <- geom_line(data = nplr_df, aes(x,y, colour = "green"), show.legend = FALSE)
-  nls_plot <- geom_line(data = nls_df, aes(log10(x), y, colour = "blue"), show.legend = FALSE)
+  
+  nplr_plot <- geom_line(data = nplr_df, aes(x,y, colour = "NPLR"), show.legend = TRUE, size = 1.25)
+  nls_plot <- geom_line(data = nls_df , aes(log10(x), y, colour = "NLS"), show.legend = TRUE, size = 1.25)
 
   if(input$nplr_checkbox ==TRUE) {
    plot <- plot + nplr_plot}
   if(input$nls_checkbox == TRUE) {
    plot <- plot + nls_plot}
+ 
+  plot <- plot + scale_colour_manual(name = "Models",
+                                     breaks = c("NPLR", "NLS"),
+                                     values = c("NPLR" = "red", "NLS" = "green"),
+                                     labels = c("NPLR", "NLS"))
+  plot <- ggplotly(plot)
+  plot$x$layout$width <- NULL
+  plot$x$layout$height <- "500px"
+  plot$width <- NULL
+  plot$height <- NULL
   
   plot
- 
+  
   })
 
  output$summary <- DT::renderDataTable({
