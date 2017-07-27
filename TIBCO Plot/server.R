@@ -1,4 +1,5 @@
 library(shiny)
+library(shinyjs)
 library(XLConnect)
 library(nlstools)
 library(ggplot2)
@@ -274,9 +275,9 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
   try(for (i in df2) {
    sumi <- summary.nplr(i)
 
-   val.parameters<- data.frame("", input$ycol, sumi$value[["params.bottom"]], sumi$value[["params.top"]],
+   val.parameters<- data.frame("NPLR", "", input$ycol, sumi$value[["params.bottom"]], sumi$value[["params.top"]],
                                 sumi$value[["Log10(IC50)"]], sumi$value[["params.scal"]], sumi$value[["weightedGOF"]], sumi$value[["IC50"]] ,stringsAsFactors=FALSE)
-   colnames(val.parameters)<-c("Compound","Feature","min","max","LoggedX50","Hill","r2","Inflexion")
+   colnames(val.parameters)<-c("Method","Compound","Feature","min","max","LoggedX50","Hill","r2","Inflexion")
    fit.parameters.nplr<-rbind(fit.parameters.nplr, val.parameters)
   })
   try(for(i in dat2) {
@@ -285,25 +286,25 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
    
    fit <- pki.app.s4s.CurveFitting.Fit.Logistic(i, sp_i)
    
-   val.parameters<-data.frame(unique(i[[compoundCol]]),input$ycol,
+   val.parameters<-data.frame("NLS", unique(i[[compoundCol]]),input$ycol,
                               fit$B,fit$A,log10(fit$C),fit$D,fit$RSquared,fit$C, stringsAsFactors=FALSE)
-   colnames(val.parameters)<-c("Compound","Feature","min","max","LoggedX50","Hill","r2","Inflexion")
+   colnames(val.parameters)<-c("Method", "Compound","Feature","min","max","LoggedX50","Hill","r2","Inflexion")
    fit.parameters.nls<-rbind(fit.parameters.nls, val.parameters)
   })
 
   fit.parameters.nplr$Compound <- as.factor(names(df2))
   
-  fit.parameters.nplr[,c(3:8)]<- sapply(fit.parameters.nplr[,c(3:8)], as.character)
+  fit.parameters.nplr[,c(4:9)]<- sapply(fit.parameters.nplr[,c(4:9)], as.character)
   
-  fit.parameters.nplr[,c(3:8)]<- sapply(fit.parameters.nplr[,c(3:8)], as.numeric)
+  fit.parameters.nplr[,c(4:9)]<- sapply(fit.parameters.nplr[,c(4:9)], as.numeric)
 
   mySummary.nplr<-fit.parameters.nplr
   
   mySummary.nls <- fit.parameters.nls
   
-  mySummary.nplr[,3:8] <- round(mySummary.nplr[,3:8], 3) 
-  mySummary.nls[,3:8] <- round(mySummary.nls[,3:8], 3) 
-
+  mySummary.nplr[,4:9] <- round(mySummary.nplr[,4:9], 4) 
+  
+  mySummary.nls[,4:9] <- round(mySummary.nls[,4:9], 4) 
   
   mySummary <- data.frame(stringsAsFactors = FALSE)
 

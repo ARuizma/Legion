@@ -130,8 +130,9 @@ shinyUI(
                             )
                            )))),
 
-  
- tabBox(title = "Visualization", width = 9,
+ column(width = 9, 
+ box(title = "Visualization", width = NULL,
+        tabPanel("",
   
  #######################################################NPLR##########################################
   
@@ -142,7 +143,7 @@ shinyUI(
    title = "Plot",
    collapsible = TRUE,
    collapsed = FALSE,
-   plotlyOutput("plot"), height=500, width = 12),
+   plotlyOutput("plot"), width = NULL),
   
   #SUMMARY####
   
@@ -150,10 +151,10 @@ shinyUI(
    title = "Summary",
    collapsible = TRUE,
    collapsed = FALSE,
-   DT::dataTableOutput("summary"), width = 12
+   DT::dataTableOutput("summary"), width = NULL
        
-  )
-))
+  ))
+)))
 ))
 ))
 )
