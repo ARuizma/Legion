@@ -33,6 +33,9 @@ shinyUI(
  #MainPanel####
  
  dashboardBody(
+  tags$style(type="text/css",
+             ".shiny-output-error { visibility: hidden; }",
+             ".shiny-output-error:before { visibility: hidden; }"),
   tabItems(
    tabItem(tabName = "daup",
            
@@ -70,18 +73,21 @@ shinyUI(
                           )),
            
                    #CONTENT####
-           
+            column(width = 9, 
+                   box(title = "Data", width = NULL,
+                       tabPanel("",
+
                    box(
                     title = "Data Content",
                     collapsible = TRUE,
                     collapsed = FALSE,
-                    DT::dataTableOutput("content", height = 500),width = 9, height = 500),
+                    DT::dataTableOutput("content"),width = NULL),
             box(
              title = "Data Histogram",
              collapsible = TRUE,
              collapsed = FALSE,
-             plotOutput("hist", height = 500), width = 9, height = 500)
-           )),
+             plotlyOutput("hist"), width = NULL)
+           ))))),
    
  #######################################################CURVEFITTING##########################################
    
@@ -151,9 +157,9 @@ shinyUI(
    title = "Summary",
    collapsible = TRUE,
    collapsed = FALSE,
-   DT::dataTableOutput("summary"), width = NULL
+   DT::dataTableOutput("summary"), width = NULL)
        
-  ))
+  )
 )))
 ))
 ))

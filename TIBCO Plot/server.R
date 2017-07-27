@@ -51,10 +51,20 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
   input$ycol
  })
  
- output$hist <- renderPlot({
+ output$hist <- renderPlotly({
   his <- df()
   xCol <- xCol()
-  ggplot(data = his, aes(his[[yCol()]])) + geom_histogram()
+  hist <- ggplot(data = his, aes(his[[yCol()]])) + geom_histogram(col = "darkblue", aes(fill = ..count..)) + 
+   scale_fill_gradient("Count", low = "green", high = "red") +
+   #geom_density() +
+  labs( x = input$ycol)
+  
+  hist <- ggplotly(hist)
+  
+  #hist$x$layout$width <- 600
+  #hist$x$layout$height <- 500
+  #hist$width <- NULL
+  #hist$height <- NULL
  })
  
  ##################################NLS###########################################
@@ -240,6 +250,9 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
 
  output$summary <- DT::renderDataTable({
   
+  if(is.null(df()))
+   return(NULL)
+  
   dat <- df()
   df2 <- df2()
   dat2 <- dat2()
@@ -274,9 +287,15 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
   
   try(for (i in df2) {
    sumi <- summary.nplr(i)
-
+   
+   j <- as.character(sumi$value[["xInfl"]])
+   
+   j <- as.numeric(j)
+   
+   expxinfl <- 10^j
+browser()
    val.parameters<- data.frame("NPLR", "", input$ycol, sumi$value[["params.bottom"]], sumi$value[["params.top"]],
-                                sumi$value[["Log10(IC50)"]], sumi$value[["params.scal"]], sumi$value[["weightedGOF"]], sumi$value[["IC50"]] ,stringsAsFactors=FALSE)
+                                sumi$value[["xInfl"]], sumi$value[["params.scal"]], sumi$value[["weightedGOF"]], expxinfl ,stringsAsFactors=FALSE)
    colnames(val.parameters)<-c("Method","Compound","Feature","min","max","LoggedX50","Hill","r2","Inflexion")
    fit.parameters.nplr<-rbind(fit.parameters.nplr, val.parameters)
   })
@@ -294,9 +313,9 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
 
   fit.parameters.nplr$Compound <- as.factor(names(df2))
   
-  fit.parameters.nplr[,c(4:9)]<- sapply(fit.parameters.nplr[,c(4:9)], as.character)
+  fit.parameters.nplr[,c(4:8)]<- sapply(fit.parameters.nplr[,c(4:8)], as.character)
   
-  fit.parameters.nplr[,c(4:9)]<- sapply(fit.parameters.nplr[,c(4:9)], as.numeric)
+  fit.parameters.nplr[,c(4:8)]<- sapply(fit.parameters.nplr[,c(4:8)], as.numeric)
 
   mySummary.nplr<-fit.parameters.nplr
   
