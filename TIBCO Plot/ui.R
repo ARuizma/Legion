@@ -80,7 +80,7 @@ shinyUI(
              title = "Data Histogram",
              collapsible = TRUE,
              collapsed = FALSE,
-             plotOutput("hist", height = 500), width = 9, height = 500)
+             plotlyOutput("hist", height = 500), width = 9, height = 500)
            )),
    
  #######################################################CURVEFITTING##########################################
@@ -113,7 +113,7 @@ shinyUI(
                            
                            box(
                             title = "Choose Data Names", width = NULL,
-                            selectInput('zcol', 'Names', choices = "Pending Upload"
+                            selectInput('zcol', '', choices = "Pending Upload"
                             )
                            ),
                            
@@ -154,6 +154,22 @@ shinyUI(
        
   )
 ))
-))
+),
+tabItem(tabName = "TSNE", 
+        
+        fluidRow(
+         column(width = 3, 
+                box(
+                 title = "SelectData", width=NULL,
+                 selectInput('ccol', '', choices = "Pending Upload", selectize = TRUE)
+                 )),
+         box(
+          title = "Clustering",
+          collapsible = TRUE,
+          collapsed = FALSE,
+          plotOutput("clustertsne"), width = 12)
+        )
+)
+)
 ))
 )
