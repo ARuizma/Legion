@@ -1,6 +1,5 @@
 library(shiny)
 library(shinyjs)
-library(XLConnect)
 library(nlstools)
 library(ggplot2)
 library(shinydashboard)
@@ -36,8 +35,6 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
   cont <- df()
   
   DT::datatable(cont, options = list(scrollX = TRUE, scrollY = TRUE))})
- 
-
  
  compoundCol <- reactive({
   input$zcol
@@ -293,7 +290,7 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
    j <- as.numeric(j)
    
    expxinfl <- 10^j
-browser()
+
    val.parameters<- data.frame("NPLR", "", input$ycol, sumi$value[["params.bottom"]], sumi$value[["params.top"]],
                                 sumi$value[["xInfl"]], sumi$value[["params.scal"]], sumi$value[["weightedGOF"]], expxinfl ,stringsAsFactors=FALSE)
    colnames(val.parameters)<-c("Method","Compound","Feature","min","max","LoggedX50","Hill","r2","Inflexion")
