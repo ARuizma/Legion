@@ -8,6 +8,7 @@ library(DT)
 library(minpack.lm)
 library(plotly)
 library(Rtsne)
+library(ggfortify)
 source("helpers.R")
 
 shinyServer(function(input, output, session) {
@@ -25,6 +26,7 @@ shinyServer(function(input, output, session) {
    updateSelectInput(session, 'zcol', choices = names(df), selected=names(df)[1])
    updateSelectInput(session, 'xcol', choices = names(df), selected=names(df)[2])
    updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
+   updateSelectInput(session, 'ccol', choices = names(df))
   })
   
   return(df)
@@ -49,6 +51,10 @@ shinyServer(function(input, output, session) {
   input$ycol
  })
  
+ cCol <- reactive ({
+  input$ccol
+ })
+ 
  output$hist <- renderPlotly({
   his <- df()
   xCol <- xCol()
@@ -58,11 +64,13 @@ shinyServer(function(input, output, session) {
   
   hist <- ggplotly(hist)
   
-  #hist$x$layout$width <- 600
-  #hist$x$layout$height <- 500
-  #hist$width <- NULL
-  #hist$height <- NULL
- })
+  hist$x$layout$width <- NULL
+  hist$x$layout$height <- 500
+  hist$width <- NULL
+  hist$height <- NULL
+ 
+hist
+    })
  
  ##################################NLS###########################################
  
@@ -332,5 +340,60 @@ shinyServer(function(input, output, session) {
   
   try(DT::datatable(mySummary, options = list(scrollX = TRUE)))
  })
+ 
+ output$drtsne <- renderPlotly({
+  if(is.null(df()))
+   return(NULL)
+  cCol <- cCol()
+  dat <- df()
+  dt <- unique(dat)
+  tsne <- Rtsne(dt[cCol], dims = 2, perplexity=30, verbose=TRUE, max_iter = 500)
+  tsne_plot <- data.frame(x = tsne$Y[,1], y = tsne$Y[,2])
+  tsnep <- ggplot(tsne_plot) + geom_point(aes(x=x, y = y, color = dt[[input$zcol]])) + labs(color = input$zcol)
+  tsnep <- ggplotly(tsnep)
+  
+  tsnep$x$layout$width <- NULL
+  tsnep$x$layout$height <- NULL
+  tsnep$width <- NULL
+  tsnep$height <- NULL
+  
+  tsnep
+ })
+ 
+ output$drpca <- renderPlotly({
+  if(is.null(df()))
+   return(NULL)
+  cCol <- cCol()
+  dat <- df()
+  pcap <- autoplot(prcomp(dat[cCol]), data = dat, col = input$zcol)
+  pcap<- ggplotly(pcap)
+  
+  pcap$x$layout$width <- NULL
+  pcap$x$layout$height <- NULL
+  pcap$width <- NULL
+  pcap$height <- NULL
+  
+  pcap
+  
+ })
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
 })
 

@@ -24,7 +24,7 @@ shinyUI(
 
    menuItem("CurveFitting", tabName = "curvefitting", icon = icon("dashboard")),
    
-   menuItem("TSNE", tabName = "tsne", icon = icon("th")),
+   menuItem("Dim Reduction", tabName = "dimred", icon = icon("th")),
    
    menuItem("PHB", tabName = "phb", icon = icon("dashboard"))
    
@@ -155,21 +155,26 @@ shinyUI(
   )
 ))
 ),
-tabItem(tabName = "TSNE", 
+tabItem(tabName = "dimred", 
         
         fluidRow(
          column(width = 3, 
                 box(
                  title = "SelectData", width=NULL,
-                 selectInput('ccol', '', choices = "Pending Upload", selectize = TRUE)
+                 selectInput('ccol', '', choices = "Pending Upload", selectize = TRUE, multiple = TRUE)
                  )),
          box(
-          title = "Clustering",
+          title = "TSNE",
           collapsible = TRUE,
           collapsed = FALSE,
-          plotOutput("clustertsne"), width = 12)
-        )
-)
+          plotlyOutput("drtsne"), width = NULL),
+         
+         box(
+          title = "PCA",
+          collapsible = TRUE,
+          collapsed = FALSE,
+          plotlyOutput("drpca"), width = NULL)
+))
 )
 ))
 )
