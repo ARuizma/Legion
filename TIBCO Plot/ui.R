@@ -24,9 +24,9 @@ shinyUI(
 
    menuItem("CurveFitting", tabName = "curvefitting", icon = icon("dashboard")),
    
-   menuItem("Dim Reduction", tabName = "dimred", icon = icon("th")),
+   menuItem("Dim Reduction", tabName = "dimred", icon = icon("dashboard")),
    
-   menuItem("PHB", tabName = "phb", icon = icon("dashboard"))
+   menuItem("Clustering", tabName = "clustering", icon = icon("dashboard"))
    
 )),
 
@@ -86,13 +86,9 @@ shinyUI(
              title = "Data Histogram",
              collapsible = TRUE,
              collapsed = FALSE,
-<<<<<<< HEAD
+
              plotlyOutput("hist"), width = NULL)
            ))))),
-=======
-             plotlyOutput("hist", height = 500), width = 9, height = 500)
-           )),
->>>>>>> DimRed
    
  #CURVEFITTING####
    
@@ -165,10 +161,8 @@ shinyUI(
    DT::dataTableOutput("summary"), width = NULL)
        
   )
-<<<<<<< HEAD
+
 )))
-=======
-))
 ),
 
 #DIMENSIONALITYREDUCTION####
@@ -185,14 +179,38 @@ tabItem(tabName = "dimred",
           title = "TSNE",
           collapsible = TRUE,
           collapsed = FALSE,
-          plotlyOutput("drtsne"), width = NULL),
+          plotlyOutput("tsne"), width = 9),
          
          box(
           title = "PCA",
           collapsible = TRUE,
           collapsed = FALSE,
-          plotlyOutput("drpca"), width = NULL)
->>>>>>> DimRed
-))
+          plotlyOutput("pca"), width = 9)
+
+)),
+
+#CLUSTERING####
+tabItem(tabName = "clustering", 
+        
+        fluidRow(
+         #column(width = 3, 
+          #      box(
+           #      title = "SelectData", width=NULL,
+            #     selectInput('ccol', '', choices = "Pending Upload", selectize = TRUE, multiple = TRUE)
+             #   )),
+         box(
+          title = "K-Means",
+          collapsible = TRUE,
+          collapsed = FALSE,
+          plotlyOutput("kmeans"), width = 9),
+         
+         box(
+          title = "Hierarchical Clustering",
+          collapsible = TRUE,
+          collapsed = FALSE,
+          plotlyOutput("hieclu"), width = 9)
+         
+        ))
+
 ))
 ))#END

@@ -51,42 +51,25 @@ shinyServer(function(input, output, session) {
   input$ycol
  })
  
-<<<<<<< HEAD
-=======
  cCol <- reactive ({
   input$ccol
  })
  
->>>>>>> DimRed
  output$hist <- renderPlotly({
   his <- df()
   xCol <- xCol()
   hist <- ggplot(data = his, aes(his[[yCol()]])) + geom_histogram(col = "darkblue", aes(fill = ..count..)) + 
-   scale_fill_gradient("Count", low = "green", high = "red") +
-<<<<<<< HEAD
-   #geom_density() +
+  scale_fill_gradient("Count", low = "green", high = "red") +
   labs( x = input$ycol)
   
   hist <- ggplotly(hist)
   
-  #hist$x$layout$width <- 600
-  #hist$x$layout$height <- 500
-  #hist$width <- NULL
-  #hist$height <- NULL
- })
-=======
-   labs( x = input$ycol)
-  
-  hist <- ggplotly(hist)
-  
   hist$x$layout$width <- NULL
-  hist$x$layout$height <- 500
+  hist$x$layout$height <- NULL
   hist$width <- NULL
   hist$height <- NULL
->>>>>>> DimRed
- 
-hist
-    })
+  hist
+ })
  
  #CURVEFITTING####
  
@@ -316,15 +299,9 @@ hist
    j <- as.numeric(j)
    
    expxinfl <- 10^j
-<<<<<<< HEAD
 
    val.parameters<- data.frame("NPLR", "", input$ycol, sumi$value[["params.bottom"]], sumi$value[["params.top"]],
                                 sumi$value[["xInfl"]], sumi$value[["params.scal"]], sumi$value[["weightedGOF"]], expxinfl ,stringsAsFactors=FALSE)
-=======
-   
-   val.parameters<- data.frame("NPLR", "", input$ycol, sumi$value[["params.bottom"]], sumi$value[["params.top"]],
-                               sumi$value[["xInfl"]], sumi$value[["params.scal"]], sumi$value[["weightedGOF"]], expxinfl ,stringsAsFactors=FALSE)
->>>>>>> DimRed
    colnames(val.parameters)<-c("Method","Compound","Feature","min","max","LoggedX50","Hill","r2","Inflexion")
    fit.parameters.nplr<-rbind(fit.parameters.nplr, val.parameters)
   })
@@ -341,17 +318,10 @@ hist
   })
   
   fit.parameters.nplr$Compound <- as.factor(names(df2))
-  
   fit.parameters.nplr[,c(4:8)]<- sapply(fit.parameters.nplr[,c(4:8)], as.character)
-<<<<<<< HEAD
-  
   fit.parameters.nplr[,c(4:8)]<- sapply(fit.parameters.nplr[,c(4:8)], as.numeric)
-
-=======
-  
   fit.parameters.nplr[,c(4:8)]<- sapply(fit.parameters.nplr[,c(4:8)], as.numeric)
   
->>>>>>> DimRed
   mySummary.nplr<-fit.parameters.nplr
   
   mySummary.nls <- fit.parameters.nls
@@ -374,15 +344,20 @@ hist
  
  #DIMENSIONALITYREDUCTION####
  
- output$drtsne <- renderPlotly({
+ output$tsne <- renderPlotly({
   if(is.null(df()))
    return(NULL)
   cCol <- cCol()
   dat <- df()
   dt <- unique(dat)
-  tsne <- Rtsne(dt[cCol], dims = 2, perplexity=30, verbose=TRUE, max_iter = 500)
+  lst <- lapply(dt[cCol], function(x) (x-min(x))/(max(x)-min(x)))
+  
+  df <- data.frame()
+  
+  res <- rbind(df, lst)
+  tsne <- Rtsne(res, dims = 2, perplexity=30, verbose=TRUE, max_iter = 500)
   tsne_plot <- data.frame(x = tsne$Y[,1], y = tsne$Y[,2])
-  tsnep <- ggplot(tsne_plot) + geom_point(aes(x=x, y = y, color = npdt[[iut$zcol]])) + labs(color = input$zcol)
+  tsnep <- ggplot(tsne_plot) + geom_point(aes(x=x, y = y, color = dt[[input$zcol]])) + labs(color = input$zcol)
   tsnep <- ggplotly(tsnep)
   
   tsnep$x$layout$width <- NULL
@@ -393,12 +368,22 @@ hist
   tsnep
  })
  
- output$drpca <- renderPlotly({
+ output$pca <- renderPlotly({
   if(is.null(df()))
    return(NULL)
   cCol <- cCol()
+  compoundCol <- compoundCol()
   dat <- df()
-  pcap <- autoplot(prcomp(dat[cCol]), data = dat, col = input$zcol)
+  names(dat)[names(dat) == compoundCol] <- "Compound"
+  compoundCol <- "Compound"
+  
+  lst <- lapply(dat[cCol], function(x) (x-min(x))/(max(x)-min(x)))
+  
+  df <- data.frame()
+  
+  res <- rbind(df, lst)
+  
+  pcap <- autoplot(prcomp(res), data = dat, colour = "Compound") + labs(color = input$zcol)
   pcap<- ggplotly(pcap)
   
   pcap$x$layout$width <- NULL
@@ -412,21 +397,62 @@ hist
  
  #CLUSTERING#### 
  
+ output$kmeans <- renderPlotly({
+  if(is.null(df()))
+   return(NULL)
+  cCol <- cCol()
+  dat <- df()
+  dt <- unique(dat)
+  lst <- lapply(dt[cCol], function(x) (x-min(x))/(max(x)-min(x)))
+  
+  df <- data.frame()
+  
+  res <- rbind(df, lst)
+  
+  kMeansResult = kmeans(res, 3)
+  
+  a <- as.factor(kMeansResult$cluster)
+  
+  kmeansp <- ggplot(res, aes(x=res[1], y = res[2], col = a)) + geom_point()
+  kmeansp <- ggplotly(kmeansp)
+  
+  kmeansp$x$layout$width <- NULL
+  kmeansp$x$layout$height <- NULL
+  kmeansp$width <- NULL
+  kmeansp$height <- NULL
+  
+  kmeansp
+  
+  
+ })
  
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
- 
-})
+ output$hieclu <- renderPlotly({
+  if(is.null(df()))
+   return(NULL)
+  cCol <- cCol()
+  dat <- df()
+  
+  lst <- lapply(dat[cCol], function(x) (x-min(x))/(max(x)-min(x)))
+  
+  df <- data.frame(dat[[input$zcol]])
+  
+  res <- cbind(df, lst)
 
+  clusters <- hclust(dist(res[,2:3]), method = "average")
+  
+  clusterCut <- cutree(clusters, 3)
+  
+  #table(clusterCut, dat$Compound)
+  
+  hieclup <- ggplot(res, aes(res[2], res[3])) + geom_point(col = clusterCut)
+  hieclup <- ggplotly(hieclup)
+  
+  hieclup $x$layout$width <- NULL
+  hieclup $x$layout$height <- NULL
+  hieclup $width <- NULL
+  hieclup $height <- NULL
+  
+  hieclup 
+  
+ })
+})#END
