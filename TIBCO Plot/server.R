@@ -72,7 +72,9 @@ shinyServer(function(input, output, session) {
 hist
     })
  
- ##################################NLS###########################################
+ #CURVEFITTING####
+ 
+ #NLS####
  
  DFunction <- try(reactive({
   if(is.null(input$file1))
@@ -111,7 +113,7 @@ hist
   split(DFunction, DFunction$Compound)
  }))
  
- ##############################################################NPLR##################################################################
+ #NPLR####
  
  logistic <- function(x, B, TT, scal, xmid, s){
   
@@ -141,14 +143,14 @@ hist
   models
  }))
  
- #####PLOT################################
+ #PLOT####
  
  output$plot <- renderPlotly({
   
   if(is.null(df()))
    
    return(NULL)
-  #####OBJECTSDEFINED#######
+  #OBJECTSDEFINED####
   compoundCol <- compoundCol()
   xCol <- xCol()
   yCol <- yCol()
@@ -168,7 +170,7 @@ hist
   cont <- 0
   nls_df<-data.frame()
   
-  #####LOOPS####################
+  #LOOPS####
   
   try(for (i in df2){
    
@@ -204,7 +206,7 @@ hist
    
   }
   
-  ######DFARRANGEMENTS#####
+  #DFARRANGEMENTS####
   
   colnames(nplr_df) <- as.character(c(compoundCol, xCol, yCol))
   
@@ -220,7 +222,8 @@ hist
   
   dat <- dat[order(match(dat[[compoundCol]], nls_df[[compoundCol]])),]
   
-  ######PLOTS##############
+  #PLOTS####
+  
   try(plot <- ggplot(data = dat, aes(x = log10(x), y = y)) + 
        geom_point() +
        stat_summary(fun.y = mean, color = "yellow", aes(group = Compound), geom = "point", size = 1.25) +
@@ -341,6 +344,8 @@ hist
   try(DT::datatable(mySummary, options = list(scrollX = TRUE)))
  })
  
+ #DIMENSIONALITYREDUCTION####
+ 
  output$drtsne <- renderPlotly({
   if(is.null(df()))
    return(NULL)
@@ -349,7 +354,7 @@ hist
   dt <- unique(dat)
   tsne <- Rtsne(dt[cCol], dims = 2, perplexity=30, verbose=TRUE, max_iter = 500)
   tsne_plot <- data.frame(x = tsne$Y[,1], y = tsne$Y[,2])
-  tsnep <- ggplot(tsne_plot) + geom_point(aes(x=x, y = y, color = dt[[input$zcol]])) + labs(color = input$zcol)
+  tsnep <- ggplot(tsne_plot) + geom_point(aes(x=x, y = y, color = npdt[[iut$zcol]])) + labs(color = input$zcol)
   tsnep <- ggplotly(tsnep)
   
   tsnep$x$layout$width <- NULL
@@ -377,7 +382,7 @@ hist
   
  })
  
- 
+ #CLUSTERING#### 
  
  
  

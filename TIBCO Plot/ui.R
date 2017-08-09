@@ -83,7 +83,7 @@ shinyUI(
              plotlyOutput("hist", height = 500), width = 9, height = 500)
            )),
    
- #######################################################CURVEFITTING##########################################
+ #CURVEFITTING####
    
   tabItem(tabName = "curvefitting", 
 
@@ -133,10 +133,10 @@ shinyUI(
   
  tabBox(title = "Visualization", width = 9,
   
- #######################################################NPLR##########################################
+ #NPLR####
   
   
-  #PLOT#####
+  #PLOT####
          
    box(
    title = "Plot",
@@ -155,6 +155,9 @@ shinyUI(
   )
 ))
 ),
+
+#DIMENSIONALITYREDUCTION####
+
 tabItem(tabName = "dimred", 
         
         fluidRow(
@@ -175,6 +178,5 @@ tabItem(tabName = "dimred",
           collapsed = FALSE,
           plotlyOutput("drpca"), width = NULL)
 ))
-)
 ))
-)
+))#END
