@@ -7,27 +7,30 @@ library(nplr)
 library(DT)
 library(minpack.lm)
 library(plotly)
+library(Rtsne)
+library(ggfortify)
 source("helpers.R")
 
 shinyServer(function(input, output, session) {
-
-#########################GENERAL#########################################################
-  
+ 
+ #########################GENERAL#########################################################
+ 
  df <- reactive ({
   infile <- input$file1
   if(is.null(infile))
    return(NULL)
- 
- df<- read.csv(infile$datapath, header=input$header, sep=input$sep, check.names = FALSE)
- 
- observe({
-updateSelectInput(session, 'zcol', choices = names(df), selected=names(df)[1])
-updateSelectInput(session, 'xcol', choices = names(df), selected=names(df)[2])
-updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
- })
- 
- return(df)
- 
+  
+  df<- read.csv(infile$datapath, header=input$header, sep=input$sep, check.names = FALSE)
+  
+  observe({
+   updateSelectInput(session, 'zcol', choices = names(df), selected=names(df)[1])
+   updateSelectInput(session, 'xcol', choices = names(df), selected=names(df)[2])
+   updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
+   updateSelectInput(session, 'ccol', choices = names(df))
+  })
+  
+  return(df)
+  
  })
  
  output$content<-DT::renderDataTable({
@@ -48,11 +51,19 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
   input$ycol
  })
  
+<<<<<<< HEAD
+=======
+ cCol <- reactive ({
+  input$ccol
+ })
+ 
+>>>>>>> DimRed
  output$hist <- renderPlotly({
   his <- df()
   xCol <- xCol()
   hist <- ggplot(data = his, aes(his[[yCol()]])) + geom_histogram(col = "darkblue", aes(fill = ..count..)) + 
    scale_fill_gradient("Count", low = "green", high = "red") +
+<<<<<<< HEAD
    #geom_density() +
   labs( x = input$ycol)
   
@@ -63,8 +74,23 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
   #hist$width <- NULL
   #hist$height <- NULL
  })
+=======
+   labs( x = input$ycol)
+  
+  hist <- ggplotly(hist)
+  
+  hist$x$layout$width <- NULL
+  hist$x$layout$height <- 500
+  hist$width <- NULL
+  hist$height <- NULL
+>>>>>>> DimRed
  
- ##################################NLS###########################################
+hist
+    })
+ 
+ #CURVEFITTING####
+ 
+ #NLS####
  
  DFunction <- try(reactive({
   if(is.null(input$file1))
@@ -101,9 +127,9 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
   if(is.null(DFunction))
    return(NULL)
   split(DFunction, DFunction$Compound)
-  }))
+ }))
  
- ##############################################################NPLR##################################################################
+ #NPLR####
  
  logistic <- function(x, B, TT, scal, xmid, s){
   
@@ -118,29 +144,29 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
  }))
  
  df2 <-  try(reactive({
-
+  
   if(is.null(df()))
    return(NULL)
   dt <- dat2()
   models <- lapply(dt, function(tmp){
-  x <- tmp[,"x"]
-  y <- tmp[,"y"]
-  if(!is.numeric(x) || !is.numeric(y))
-   return(NULL)
-  npars <- ifelse(input$npars == "all", "all", as.numeric(input$npars))
-  try(nplr(x, y, npars = npars, useLog = TRUE, silent = TRUE))
- })
+   x <- tmp[,"x"]
+   y <- tmp[,"y"]
+   if(!is.numeric(x) || !is.numeric(y))
+    return(NULL)
+   npars <- ifelse(input$npars == "all", "all", as.numeric(input$npars))
+   try(nplr(x, y, npars = npars, useLog = TRUE, silent = TRUE))
+  })
   models
  }))
  
- #####PLOT################################
+ #PLOT####
  
  output$plot <- renderPlotly({
-
+  
   if(is.null(df()))
    
-     return(NULL)
-#####OBJECTSDEFINED#######
+   return(NULL)
+  #OBJECTSDEFINED####
   compoundCol <- compoundCol()
   xCol <- xCol()
   yCol <- yCol()
@@ -159,26 +185,26 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
   nplr_df <- data.frame()
   cont <- 0
   nls_df<-data.frame()
-
-#####LOOPS####################
+  
+  #LOOPS####
   
   try(for (i in df2){
-  
-  B <- getPar(i)$params$bottom
-  TT <- getPar(i)$params$top
-  xmid <- getPar(i)$params$xmid
-  s <- getPar(i)$params$s
-  scal <- getPar(i)$params$scal
-  
-  cont <- cont + 1
-  
-  for (n in x){
- 
-   w <- logistic(n, B, TT, scal, xmid, s)
    
-   nplr_df <- rbind(nplr_df, c(cont, n, w))
-  
-  }})
+   B <- getPar(i)$params$bottom
+   TT <- getPar(i)$params$top
+   xmid <- getPar(i)$params$xmid
+   s <- getPar(i)$params$s
+   scal <- getPar(i)$params$scal
+   
+   cont <- cont + 1
+   
+   for (n in x){
+    
+    w <- logistic(n, B, TT, scal, xmid, s)
+    
+    nplr_df <- rbind(nplr_df, c(cont, n, w))
+    
+   }})
   
   for(i in dat2) {
    
@@ -196,8 +222,8 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
    
   }
   
-  ######DFARRANGEMENTS#####
- 
+  #DFARRANGEMENTS####
+  
   colnames(nplr_df) <- as.character(c(compoundCol, xCol, yCol))
   
   nplr_df[[compoundCol]] <- as.factor(nplr_df[[compoundCol]])
@@ -211,26 +237,26 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
   levels(nls_df[[compoundCol]]) <- levels(dat[[compoundCol]])
   
   dat <- dat[order(match(dat[[compoundCol]], nls_df[[compoundCol]])),]
-
-# browser()
-  ######PLOTS##############
+  
+  #PLOTS####
+  
   try(plot <- ggplot(data = dat, aes(x = log10(x), y = y)) + 
-   geom_point() +
-   stat_summary(fun.y = mean, color = "yellow", aes(group = Compound), geom = "point", size = 1.25) +
-   stat_summary(fun.data = mean_se, geom = "errorbar", size = 1.25) +
-   facet_wrap(~Compound, scales = "free", dir = "v") +
-   labs(x = input$xcol, y = input$ycol))
-   
+       geom_point() +
+       stat_summary(fun.y = mean, color = "yellow", aes(group = Compound), geom = "point", size = 1.25) +
+       stat_summary(fun.data = mean_se, geom = "errorbar", size = 1.25) +
+       facet_wrap(~Compound, scales = "free", dir = "v") +
+       labs(x = input$xcol, y = input$ycol))
+  
   
   
   nplr_plot <- geom_line(data = nplr_df, aes(x,y, colour = "NPLR"), show.legend = TRUE, size = 1.25)
   nls_plot <- geom_line(data = nls_df , aes(log10(x), y, colour = "NLS"), show.legend = TRUE, size = 1.25)
-
+  
   if(input$nplr_checkbox ==TRUE) {
    plot <- plot + nplr_plot}
   if(input$nls_checkbox == TRUE) {
    plot <- plot + nls_plot}
- 
+  
   plot <- plot + scale_colour_manual(name = "Models",
                                      breaks = c("NPLR", "NLS"),
                                      values = c("NPLR" = "red", "NLS" = "green"),
@@ -243,8 +269,8 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
   
   plot
   
-  })
-
+ })
+ 
  output$summary <- DT::renderDataTable({
   
   if(is.null(df()))
@@ -261,15 +287,6 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
   compoundCol <- "Compound"
   r2<-0
   fit.parameters.nplr <- data.frame(Compound=character(),
-                               Feature=character(),
-                               min=numeric(),
-                               max=numeric(),
-                               Inflexion=numeric(),
-                               Hill=numeric(),
-                               r2=numeric(),
-                               stringsAsFactors=FALSE) 
-  
-  fit.parameters.nls <- data.frame(Compound=character(),
                                     Feature=character(),
                                     min=numeric(),
                                     max=numeric(),
@@ -277,6 +294,15 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
                                     Hill=numeric(),
                                     r2=numeric(),
                                     stringsAsFactors=FALSE) 
+  
+  fit.parameters.nls <- data.frame(Compound=character(),
+                                   Feature=character(),
+                                   min=numeric(),
+                                   max=numeric(),
+                                   Inflexion=numeric(),
+                                   Hill=numeric(),
+                                   r2=numeric(),
+                                   stringsAsFactors=FALSE) 
   
   if(is.null(df2))
    return(NULL)
@@ -290,9 +316,15 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
    j <- as.numeric(j)
    
    expxinfl <- 10^j
+<<<<<<< HEAD
 
    val.parameters<- data.frame("NPLR", "", input$ycol, sumi$value[["params.bottom"]], sumi$value[["params.top"]],
                                 sumi$value[["xInfl"]], sumi$value[["params.scal"]], sumi$value[["weightedGOF"]], expxinfl ,stringsAsFactors=FALSE)
+=======
+   
+   val.parameters<- data.frame("NPLR", "", input$ycol, sumi$value[["params.bottom"]], sumi$value[["params.top"]],
+                               sumi$value[["xInfl"]], sumi$value[["params.scal"]], sumi$value[["weightedGOF"]], expxinfl ,stringsAsFactors=FALSE)
+>>>>>>> DimRed
    colnames(val.parameters)<-c("Method","Compound","Feature","min","max","LoggedX50","Hill","r2","Inflexion")
    fit.parameters.nplr<-rbind(fit.parameters.nplr, val.parameters)
   })
@@ -307,13 +339,19 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
    colnames(val.parameters)<-c("Method", "Compound","Feature","min","max","LoggedX50","Hill","r2","Inflexion")
    fit.parameters.nls<-rbind(fit.parameters.nls, val.parameters)
   })
-
+  
   fit.parameters.nplr$Compound <- as.factor(names(df2))
   
   fit.parameters.nplr[,c(4:8)]<- sapply(fit.parameters.nplr[,c(4:8)], as.character)
+<<<<<<< HEAD
   
   fit.parameters.nplr[,c(4:8)]<- sapply(fit.parameters.nplr[,c(4:8)], as.numeric)
 
+=======
+  
+  fit.parameters.nplr[,c(4:8)]<- sapply(fit.parameters.nplr[,c(4:8)], as.numeric)
+  
+>>>>>>> DimRed
   mySummary.nplr<-fit.parameters.nplr
   
   mySummary.nls <- fit.parameters.nls
@@ -323,7 +361,7 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
   mySummary.nls[,4:9] <- round(mySummary.nls[,4:9], 4) 
   
   mySummary <- data.frame(stringsAsFactors = FALSE)
-
+  
   if(input$nplr_checkbox ==TRUE) {
    mySummary <- rbind(mySummary.nplr)}
   if(input$nls_checkbox == TRUE) {
@@ -333,4 +371,62 @@ updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
   
   try(DT::datatable(mySummary, options = list(scrollX = TRUE)))
  })
+ 
+ #DIMENSIONALITYREDUCTION####
+ 
+ output$drtsne <- renderPlotly({
+  if(is.null(df()))
+   return(NULL)
+  cCol <- cCol()
+  dat <- df()
+  dt <- unique(dat)
+  tsne <- Rtsne(dt[cCol], dims = 2, perplexity=30, verbose=TRUE, max_iter = 500)
+  tsne_plot <- data.frame(x = tsne$Y[,1], y = tsne$Y[,2])
+  tsnep <- ggplot(tsne_plot) + geom_point(aes(x=x, y = y, color = npdt[[iut$zcol]])) + labs(color = input$zcol)
+  tsnep <- ggplotly(tsnep)
+  
+  tsnep$x$layout$width <- NULL
+  tsnep$x$layout$height <- NULL
+  tsnep$width <- NULL
+  tsnep$height <- NULL
+  
+  tsnep
+ })
+ 
+ output$drpca <- renderPlotly({
+  if(is.null(df()))
+   return(NULL)
+  cCol <- cCol()
+  dat <- df()
+  pcap <- autoplot(prcomp(dat[cCol]), data = dat, col = input$zcol)
+  pcap<- ggplotly(pcap)
+  
+  pcap$x$layout$width <- NULL
+  pcap$x$layout$height <- NULL
+  pcap$width <- NULL
+  pcap$height <- NULL
+  
+  pcap
+  
+ })
+ 
+ #CLUSTERING#### 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
 })
+

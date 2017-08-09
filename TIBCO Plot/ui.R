@@ -24,7 +24,7 @@ shinyUI(
 
    menuItem("CurveFitting", tabName = "curvefitting", icon = icon("dashboard")),
    
-   menuItem("TSNE", tabName = "tsne", icon = icon("th")),
+   menuItem("Dim Reduction", tabName = "dimred", icon = icon("th")),
    
    menuItem("PHB", tabName = "phb", icon = icon("dashboard"))
    
@@ -86,10 +86,15 @@ shinyUI(
              title = "Data Histogram",
              collapsible = TRUE,
              collapsed = FALSE,
+<<<<<<< HEAD
              plotlyOutput("hist"), width = NULL)
            ))))),
+=======
+             plotlyOutput("hist", height = 500), width = 9, height = 500)
+           )),
+>>>>>>> DimRed
    
- #######################################################CURVEFITTING##########################################
+ #CURVEFITTING####
    
   tabItem(tabName = "curvefitting", 
 
@@ -119,7 +124,7 @@ shinyUI(
                            
                            box(
                             title = "Choose Data Names", width = NULL,
-                            selectInput('zcol', 'Names', choices = "Pending Upload"
+                            selectInput('zcol', '', choices = "Pending Upload"
                             )
                            ),
                            
@@ -140,10 +145,10 @@ shinyUI(
  box(title = "Visualization", width = NULL,
         tabPanel("",
   
- #######################################################NPLR##########################################
+ #NPLR####
   
   
-  #PLOT#####
+  #PLOT####
          
    box(
    title = "Plot",
@@ -160,7 +165,34 @@ shinyUI(
    DT::dataTableOutput("summary"), width = NULL)
        
   )
+<<<<<<< HEAD
 )))
+=======
+))
+),
+
+#DIMENSIONALITYREDUCTION####
+
+tabItem(tabName = "dimred", 
+        
+        fluidRow(
+         column(width = 3, 
+                box(
+                 title = "SelectData", width=NULL,
+                 selectInput('ccol', '', choices = "Pending Upload", selectize = TRUE, multiple = TRUE)
+                 )),
+         box(
+          title = "TSNE",
+          collapsible = TRUE,
+          collapsed = FALSE,
+          plotlyOutput("drtsne"), width = NULL),
+         
+         box(
+          title = "PCA",
+          collapsible = TRUE,
+          collapsed = FALSE,
+          plotlyOutput("drpca"), width = NULL)
+>>>>>>> DimRed
 ))
 ))
-)
+))#END
