@@ -9,7 +9,10 @@ library(minpack.lm)
 library(plotly)
 library(Rtsne)
 library(ggfortify)
+library(jsonlite)
 source("helpers.R")
+
+options(shiny.maxRequestSize = 30*1024^2)
 
 shinyServer(function(input, output, session) {
  
