@@ -81,13 +81,12 @@ shinyUI(
                     title = "Data Content",
                     collapsible = TRUE,
                     collapsed = FALSE,
-                    DT::dataTableOutput("content"),width = NULL),
-            box(
-             title = "Data Histogram",
-             collapsible = TRUE,
-             collapsed = FALSE,
-
-             plotlyOutput("hist"), width = NULL)
+                    DT::dataTableOutput("content"),width = NULL)
+            #box(
+             #title = "Data Histogram",
+             #collapsible = TRUE,
+             #collapsed = FALSE,
+             #plotlyOutput("hist"), width = NULL)
            ))))),
    
  #CURVEFITTING####

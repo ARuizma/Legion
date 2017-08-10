@@ -58,21 +58,21 @@ shinyServer(function(input, output, session) {
   input$ccol
  })
  
- output$hist <- renderPlotly({
-  his <- df()
-  xCol <- xCol()
-  hist <- ggplot(data = his, aes(his[[yCol()]])) + geom_histogram(col = "darkblue", aes(fill = ..count..)) + 
-  scale_fill_gradient("Count", low = "green", high = "red") +
-  labs( x = input$ycol)
+ #output$hist <- renderPlotly({
+  #his <- df()
+  #xCol <- xCol()
+  #hist <- ggplot(data = his, aes(his[[yCol()]])) + geom_histogram(col = "darkblue", aes(fill = ..count..)) + 
+  #scale_fill_gradient("Count", low = "green", high = "red") +
+  #labs( x = input$ycol)
   
-  hist <- ggplotly(hist)
+  #hist <- ggplotly(hist)
   
-  hist$x$layout$width <- NULL
-  hist$x$layout$height <- NULL
-  hist$width <- NULL
-  hist$height <- NULL
-  hist
- })
+  #hist$x$layout$width <- NULL
+  #hist$x$layout$height <- NULL
+  #hist$width <- NULL
+  #hist$height <- NULL
+  #hist
+ #})
  
  #CURVEFITTING####
  
