@@ -10,11 +10,58 @@ library(plotly)
 library(Rtsne)
 library(ggfortify)
 library(jsonlite)
+library(RColorBrewer)
 source("helpers.R")
 
 options(shiny.maxRequestSize = 30*1024^2)
 
+parse_widgets <- function(conf_path) {
+ 
+ my_list_of_widgets <- fromJSON(conf_path)
+ 
+ id_of_widgets <- names(my_list_of_widgets)
+ 
+ list_of_tags <- c()
+ 
+ for (widget_id in id_of_widgets) {
+  
+  widget_parameters <- names(my_list_of_widgets[[widget_id]])
+  
+  list <- c()
+  
+  for (key in widget_parameters) {
+   
+   if(key != "type") {
+    
+    value = my_list_of_widgets[[widget_id]][[key]]
+    if (grepl('%LIST_SEPARATOR%', value)) {
+     value = gsub('%LIST_SEPARATOR%', "', '", value)
+     value = paste('c(\'', value, '\')', sep = '')
+    }
+    
+    list <- c(list, paste(key, value, sep = ' = '))
+   }
+  }
+  list <- c(list, paste("'inputId'", paste('\'', widget_id, '\'', sep = ''), sep = ' = '))
+  
+  tag = paste(my_list_of_widgets[[widget_id]][['type']], '(', sep = '')
+  tag_key_values = paste0(list, collapse = ', ')
+  tag = paste(tag, tag_key_values, ')', sep = '')
+  
+  list_of_tags <- c(list_of_tags, tag)
+ }
+ 
+ list_of_tags
+ 
+}
+
 shinyServer(function(input, output, session) {
+ 
+ configuration_path <- "C:\\Users\\Capitán Tomate\\Documents\\GitHub\\Atlassian\\TIBCO Plot\\conf.json";
+ widgets <- parse_widgets(conf_path = configuration_path)
+ output$widget <- renderUI({
+  tagList(lapply(widgets, function(x) { eval(parse(text=x)) }))
+ })
  
  #########################GENERAL#########################################################
  
@@ -235,8 +282,8 @@ shinyServer(function(input, output, session) {
   
   
   
-  nplr_plot <- geom_line(data = nplr_df, aes(x,y, colour = "NPLR"), show.legend = TRUE, size = 1.25)
-  nls_plot <- geom_line(data = nls_df , aes(log10(x), y, colour = "NLS"), show.legend = TRUE, size = 1.25)
+  nplr_plot <- geom_line(data = nplr_df, aes(x,y, colour = "NPLR"), show.legend = TRUE, size = 0.75)
+  nls_plot <- geom_line(data = nls_df , aes(log10(x), y, colour = "NLS"), show.legend = TRUE, size = 0.75)
   
   if(input$nplr_checkbox ==TRUE) {
    plot <- plot + nplr_plot}
@@ -414,9 +461,12 @@ shinyServer(function(input, output, session) {
   
   kMeansResult = kmeans(res, 3)
   
-  a <- as.factor(kMeansResult$cluster)
   
-  kmeansp <- ggplot(res, aes(x=res[1], y = res[2], col = a)) + geom_point()
+  dd.col <- rainbow(length(as.numeric(levels(as.factor(kMeansResult$cluster)))))
+
+  names(dd.col) <- levels(as.factor(kMeansResult$cluster))
+ 
+  kmeansp <- ggplot(res, aes(x=res[1], y = res[2], col = as.factor(kMeansResult$cluster))) + geom_point() + scale_color_brewer(palette="Dark2")
   kmeansp <- ggplotly(kmeansp)
   
   kmeansp$x$layout$width <- NULL
@@ -445,9 +495,7 @@ shinyServer(function(input, output, session) {
   
   clusterCut <- cutree(clusters, 3)
   
-  #table(clusterCut, dat$Compound)
-  
-  hieclup <- ggplot(res, aes(res[2], res[3])) + geom_point(col = clusterCut)
+  hieclup <- ggplot(res, aes(res[2], res[3], col = as.factor(clusterCut))) + geom_point() + scale_color_brewer(palette="Dark2")
   hieclup <- ggplotly(hieclup)
   
   hieclup $x$layout$width <- NULL

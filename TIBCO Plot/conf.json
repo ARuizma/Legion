@@ -1,0 +1,27 @@
+{
+ "numClusters" : { 
+               "type" : "sliderInput", 
+               "'label'" : "'#Clusters Antonio'", 
+               "'min'" : 1, 
+               "'max'" : 9, 
+               "'value'" : 7
+ },
+  "kMethod" : { 
+              "type" : "selectInput", 
+              "'label'" : "'K-Means Algorithm:'", 
+              "'choices'" : "Hartigan-Wong%LIST_SEPARATOR%Lloyd%LIST_SEPARATOR%Forgy%LIST_SEPARATOR%MacQueen"
+ },
+ "kMeansCorrection" :{
+              "type" : "checkboxInput", 
+              "'label'" : "'Apply Bauhasus Correction:'", 
+              "'value'" : false
+  
+ },
+ "myNewCheck" :{
+              "type" : "checkboxInput", 
+              "'label'" : "'Apply a new factor to correct variablity:'", 
+              "'value'" : true
+  
+ }
+
+}
