@@ -488,7 +488,7 @@ shinyServer(function(input, output, session) {
   
   kMeansResult = kmeans(res, centers = input$num, algorithm = input$alg)
   
-  
+
   dd.col <- rainbow(length(as.numeric(levels(as.factor(kMeansResult$cluster)))))
   
   names(dd.col) <- levels(as.factor(kMeansResult$cluster))
@@ -519,8 +519,7 @@ shinyServer(function(input, output, session) {
   
   res <- cbind(df, lst)
   
-  clusters <- hclust(dist(res[,2:3]), method = input$met)
-  
+  clusters <- hclust(dist(res[,-1]), method = input$met)
   clusterCut <- cutree(clusters, k = input$num)
   
   hieclup <- ggplot(res, aes(res[2], res[3], col = as.factor(clusterCut))) + geom_point() + scale_color_brewer(palette="Dark2") + labs(color = "Clusters", x = "X", y = "Y")

@@ -99,7 +99,7 @@ shinyUI(
                             checkboxInput("nls_checkbox", label = "NLS", value = FALSE),
                             selectInput('zcol', 'Compounds', choices = "Pending Upload"),
                             selectInput('xcol', 'Concentration', choices = "Pending Upload"),
-                            selectInput('ycol', 'Results', choices = "Pending Upload"))),
+                            selectInput('ycol', 'Feature', choices = "Pending Upload"))),
  column(width = 10, 
  box(title = "Visualization", width = NULL,
  #NPLR####
