@@ -77,6 +77,7 @@ shinyServer(function(input, output, session) {
    updateSelectInput(session, 'xcol', choices = names(df), selected=names(df)[2])
    updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
    updateSelectInput(session, 'ccol', choices = names(df))
+   updateSelectInput(session, 'dcol', choices = names(df))
   })
   
   return(df)
@@ -105,20 +106,23 @@ shinyServer(function(input, output, session) {
   input$ccol
  })
  
+ dCol <- reactive ({
+  input$dcol
+ })
  #output$hist <- renderPlotly({
-  #his <- df()
-  #xCol <- xCol()
-  #hist <- ggplot(data = his, aes(his[[yCol()]])) + geom_histogram(col = "darkblue", aes(fill = ..count..)) + 
-  #scale_fill_gradient("Count", low = "green", high = "red") +
-  #labs( x = input$ycol)
-  
-  #hist <- ggplotly(hist)
-  
-  #hist$x$layout$width <- NULL
-  #hist$x$layout$height <- NULL
-  #hist$width <- NULL
-  #hist$height <- NULL
-  #hist
+ #his <- df()
+ #xCol <- xCol()
+ #hist <- ggplot(data = his, aes(his[[yCol()]])) + geom_histogram(col = "darkblue", aes(fill = ..count..)) + 
+ #scale_fill_gradient("Count", low = "green", high = "red") +
+ #labs( x = input$ycol)
+ 
+ #hist <- ggplotly(hist)
+ 
+ #hist$x$layout$width <- NULL
+ #hist$x$layout$height <- NULL
+ #hist$width <- NULL
+ #hist$height <- NULL
+ #hist
  #})
  
  #CURVEFITTING####
@@ -192,6 +196,27 @@ shinyServer(function(input, output, session) {
   models
  }))
  
+ #####UIOUTPUT####
+ 
+ output$npars <- renderUI({
+  if(input$nplr_checkbox == TRUE)
+   npars =  selectInput('npars', 'Number of Parameters', c("Best" = 'all', "2" = '2', "3" = '3', "4"= '4', "5"='5'), "all")})
+ output$perp <- renderUI({
+  if(input$tsne_checkbox == TRUE)
+   perp = sliderInput('perp', 'Perplexity', min=1, max=100, value = 30)
+ })
+ output$dim <- renderUI({
+  if(input$tsne_checkbox == TRUE)
+   sliderInput('dim', 'Dimensions', min=2, max=100, value = 2)
+ })
+ output$alg <- renderUI({
+  if(input$kmeans_checkbox == TRUE)
+   selectInput('alg', 'Method', c('Hartigan-Wong', "Lloyd", "Forgy", "MacQueen"), "Hartigan-Wong")
+ })
+ output$met <- renderUI({
+  if(input$hieclu_checkbox == TRUE)
+   selectInput('met', 'Method', c("war.D", "war.D2", "single", "complete", "average", "mcquitty", "median", "centroid"), "complete")
+ })
  #PLOT####
  
  output$plot <- renderPlotly({
@@ -349,9 +374,9 @@ shinyServer(function(input, output, session) {
    j <- as.numeric(j)
    
    expxinfl <- 10^j
-
+   
    val.parameters<- data.frame("NPLR", "", input$ycol, sumi$value[["params.bottom"]], sumi$value[["params.top"]],
-                                sumi$value[["xInfl"]], sumi$value[["params.scal"]], sumi$value[["weightedGOF"]], expxinfl ,stringsAsFactors=FALSE)
+                               sumi$value[["xInfl"]], sumi$value[["params.scal"]], sumi$value[["weightedGOF"]], expxinfl ,stringsAsFactors=FALSE)
    colnames(val.parameters)<-c("Method","Compound","Feature","min","max","LoggedX50","Hill","r2","Inflexion")
    fit.parameters.nplr<-rbind(fit.parameters.nplr, val.parameters)
   })
@@ -397,17 +422,17 @@ shinyServer(function(input, output, session) {
  output$tsne <- renderPlotly({
   if(is.null(df()))
    return(NULL)
-  cCol <- cCol()
+  dCol <- dCol()
   dat <- df()
   dt <- unique(dat)
-  lst <- lapply(dt[cCol], function(x) (x-min(x))/(max(x)-min(x)))
+  lst <- lapply(dt[dCol], function(x) (x-min(x))/(max(x)-min(x)))
   
   df <- data.frame()
   
   res <- rbind(df, lst)
-  tsne <- Rtsne(res, dims = 2, perplexity=30, verbose=TRUE, max_iter = 500)
+  tsne <- Rtsne(res, dims = input$dim, perplexity=input$perp, verbose=TRUE, max_iter = 500)
   tsne_plot <- data.frame(x = tsne$Y[,1], y = tsne$Y[,2])
-  tsnep <- ggplot(tsne_plot) + geom_point(aes(x=x, y = y, color = dt[[input$zcol]])) + labs(color = input$zcol)
+  tsnep <- ggplot(tsne_plot) + geom_point(aes(x=x, y = y, color = dt[[input$zcol]])) + labs(color = input$zcol, x = "X", y = "Y")
   tsnep <- ggplotly(tsnep)
   
   tsnep$x$layout$width <- NULL
@@ -415,25 +440,26 @@ shinyServer(function(input, output, session) {
   tsnep$width <- NULL
   tsnep$height <- NULL
   
-  tsnep
+  if(input$tsne_checkbox == TRUE) {
+   tsnep}
  })
  
  output$pca <- renderPlotly({
   if(is.null(df()))
    return(NULL)
-  cCol <- cCol()
+  dCol <- dCol()
   compoundCol <- compoundCol()
   dat <- df()
   names(dat)[names(dat) == compoundCol] <- "Compound"
   compoundCol <- "Compound"
   
-  lst <- lapply(dat[cCol], function(x) (x-min(x))/(max(x)-min(x)))
+  lst <- lapply(dat[dCol], function(x) (x-min(x))/(max(x)-min(x)))
   
   df <- data.frame()
   
   res <- rbind(df, lst)
   
-  pcap <- autoplot(prcomp(res), data = dat, colour = "Compound") + labs(color = input$zcol)
+  pcap <- autoplot(prcomp(res), data = dat, colour = "Compound") + labs(color = input$zcol, x = "X", y = "Y")
   pcap<- ggplotly(pcap)
   
   pcap$x$layout$width <- NULL
@@ -441,7 +467,8 @@ shinyServer(function(input, output, session) {
   pcap$width <- NULL
   pcap$height <- NULL
   
-  pcap
+  if(input$pca_checkbox == TRUE) {
+   pcap}
   
  })
  
@@ -459,14 +486,14 @@ shinyServer(function(input, output, session) {
   
   res <- rbind(df, lst)
   
-  kMeansResult = kmeans(res, 3)
+  kMeansResult = kmeans(res, centers = input$num, algorithm = input$alg)
   
   
   dd.col <- rainbow(length(as.numeric(levels(as.factor(kMeansResult$cluster)))))
-
+  
   names(dd.col) <- levels(as.factor(kMeansResult$cluster))
- 
-  kmeansp <- ggplot(res, aes(x=res[1], y = res[2], col = as.factor(kMeansResult$cluster))) + geom_point() + scale_color_brewer(palette="Dark2")
+  
+  kmeansp <- ggplot(res, aes(x=res[1], y = res[2], col = as.factor(kMeansResult$cluster))) + geom_point() + scale_color_brewer(palette="Dark2") +  labs(color = "Clusters", x = "X", y = "Y")
   kmeansp <- ggplotly(kmeansp)
   
   kmeansp$x$layout$width <- NULL
@@ -474,7 +501,8 @@ shinyServer(function(input, output, session) {
   kmeansp$width <- NULL
   kmeansp$height <- NULL
   
-  kmeansp
+  if(input$kmeans_checkbox == TRUE) {
+   kmeansp}
   
   
  })
@@ -490,12 +518,12 @@ shinyServer(function(input, output, session) {
   df <- data.frame(dat[[input$zcol]])
   
   res <- cbind(df, lst)
-
-  clusters <- hclust(dist(res[,2:3]), method = "average")
   
-  clusterCut <- cutree(clusters, 3)
+  clusters <- hclust(dist(res[,2:3]), method = input$met)
   
-  hieclup <- ggplot(res, aes(res[2], res[3], col = as.factor(clusterCut))) + geom_point() + scale_color_brewer(palette="Dark2")
+  clusterCut <- cutree(clusters, k = input$num)
+  
+  hieclup <- ggplot(res, aes(res[2], res[3], col = as.factor(clusterCut))) + geom_point() + scale_color_brewer(palette="Dark2") + labs(color = "Clusters", x = "X", y = "Y")
   hieclup <- ggplotly(hieclup)
   
   hieclup $x$layout$width <- NULL
@@ -503,7 +531,8 @@ shinyServer(function(input, output, session) {
   hieclup $width <- NULL
   hieclup $height <- NULL
   
-  hieclup 
+  if(input$hieclu_checkbox == TRUE) {
+   hieclup} 
   
  })
 })#END
