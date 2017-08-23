@@ -59,9 +59,12 @@ shinyServer(function(input, output, session) {
  
  configuration_path <- "C:\\Users\\Capitán Tomate\\Documents\\GitHub\\Atlassian\\TIBCO Plot\\conf.json";
  widgets <- parse_widgets(conf_path = configuration_path)
- output$widget <- renderUI({
-  tagList(lapply(widgets, function(x) { eval(parse(text=x)) }))
+ output$widdaup <- renderUI({
+  tagList(lapply(widgets[1:3], function(x) { eval(parse(text=x)) }))
  })
+ #♥output$widget2 <- renderUI({
+  #tagList(lapply(widgets[2], function(x) { eval(parse(text=x)) }))
+ #})
  
  #########################GENERAL#########################################################
  

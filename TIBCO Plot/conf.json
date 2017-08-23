@@ -1,27 +1,29 @@
 {
- "numClusters" : { 
-               "type" : "sliderInput", 
-               "'label'" : "'#Clusters Antonio'", 
-               "'min'" : 1, 
-               "'max'" : 9, 
-               "'value'" : 7
+ "file1" : { 
+               "type" : "fileInput", 
+               "label" : "'Choose File with .csv, .tsv, .txt format'", 
+               "accept" : "c('text/csv', 'text/comma-separated-values, text/plain', '.csv'),"
  },
-  "kMethod" : { 
-              "type" : "selectInput", 
-              "'label'" : "'K-Means Algorithm:'", 
-              "'choices'" : "Hartigan-Wong%LIST_SEPARATOR%Lloyd%LIST_SEPARATOR%Forgy%LIST_SEPARATOR%MacQueen"
+ 
+  "header" : { 
+               "type" : "checkboxInput", 
+               "label" : "'Headers'", 
+               "value" : "TRUE"
  },
- "kMeansCorrection" :{
-              "type" : "checkboxInput", 
-              "'label'" : "'Apply Bauhasus Correction:'", 
-              "'value'" : false
-  
+ 
+  "sep" : { 
+               "type" : "radioButtons", 
+               "label" : "'Separation'", 
+               "choices" : "Comma=,%LIST_SEPARATOR%Semicolon=;%LIST_SEPARATOR%Tab=\t",
+               "selected" : "','"
  },
- "myNewCheck" :{
-              "type" : "checkboxInput", 
-              "'label'" : "'Apply a new factor to correct variablity:'", 
-              "'value'" : true
-  
+ 
+ 
+ 
+ "zcol" : {
+              "type" : "selectInput",
+              "label" : "'Compounds'",
+              "choices" : "'Pending Upload'"
  }
 
 }

@@ -42,29 +42,28 @@ shinyUI(
                          fluidRow(
                           column(width = 2,
                                  
-                                 box(title = "File Information", side = "right",
-                                     id = "tabset1", width = NULL,
+                                 box(title = "File Information", width = NULL,
                                      
                                      #FILETAB####
                                      
                                      
-                                     fileInput('file1', 'Choose File with .csv, .tsv, .txt format',
-                                               accept=c('text/csv', 
-                                                        'text/comma-separated-values, text/plain', 
-                                                        '.csv')
+                                     #fileInput('file1', 'Choose File with .csv, .tsv, .txt format',
+                                      #         accept=c('text/csv', 
+                                      #                  'text/comma-separated-values, text/plain', 
+                                       #                 '.csv')
                                                
-                                     ),
+                                     #),
+                                     uiOutput("widdaup")
+                                     
+                                     #checkboxInput('header', 'Headers', TRUE),
                                      
                                      
-                                     checkboxInput('header', 'Headers', TRUE),
                                      
-                                     
-                                     
-                                     radioButtons('sep', "Separation",
-                                                  c(Comma=',',
-                                                    Semicolon=';',
-                                                    Tab='\t'),
-                                                  ',')
+                                     #radioButtons('sep', "Separation",
+                                      #            c(Comma=',',
+                                       #             Semicolon=';',
+                                        #            Tab='\t'),
+                                         #         ',')
                                      
                                  )
                           ),
@@ -97,7 +96,13 @@ shinyUI(
                                      checkboxInput("nplr_checkbox", label = "NPLR", value = FALSE),
                                      uiOutput('npars'),
                                      checkboxInput("nls_checkbox", label = "NLS", value = FALSE),
-                                     selectInput('zcol', 'Compounds', choices = "Pending Upload"),
+                                     
+                                     
+                                     uiOutput('widcufi'),
+                                     
+                                     
+                                     
+                                     #selectInput('zcol', 'Compounds', choices = "Pending Upload"),
                                      selectInput('xcol', 'Concentration', choices = "Pending Upload"),
                                      selectInput('ycol', 'Results', choices = "Pending Upload"))),
                           column(width = 10, 
@@ -131,6 +136,7 @@ shinyUI(
                                   uiOutput('dim'),
                                   checkboxInput("pca_checkbox", label = "PCA", value = FALSE)
                                  )),
+                          uiOutput('widdimred'),
                           box(
                            title = "TSNE",
                            collapsible = TRUE,
@@ -156,8 +162,9 @@ shinyUI(
                                      checkboxInput("kmeans_checkbox", label = "K-means", value = FALSE),
                                      uiOutput('alg'),
                                      checkboxInput("hieclu_checkbox", label = "Hierarchical Clustering", value = FALSE),
-                                     uiOutput('met')
-                                 )),
+                                     uiOutput('met'),
+                                     uiOutput('widclust')
+                                     )),
                           box(
                            title = "K-Means",
                            collapsible = TRUE,
