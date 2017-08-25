@@ -11,13 +11,6 @@
                "value" : "TRUE"
  },
  
-  "sep" : { 
-               "type" : "radioButtons", 
-               "label" : "'Separation'", 
-               "choices" : "Comma=,%LIST_SEPARATOR%Semicolon=;%LIST_SEPARATOR%Tab=\t",
-               "selected" : "','"
- },
- 
  
  
  "zcol" : {

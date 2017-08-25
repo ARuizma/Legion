@@ -24,7 +24,7 @@ parse_widgets <- function(conf_path) {
  list_of_tags <- c()
  
  for (widget_id in id_of_widgets) {
-  
+  browser()
   widget_parameters <- names(my_list_of_widgets[[widget_id]])
   
   list <- c()
@@ -59,7 +59,7 @@ shinyServer(function(input, output, session) {
  
  configuration_path <- "C:\\Users\\Capitán Tomate\\Documents\\GitHub\\Atlassian\\TIBCO Plot\\conf.json";
  widgets <- parse_widgets(conf_path = configuration_path)
- output$widdaup <- renderUI({
+ output$widdimred <- renderUI({
   tagList(lapply(widgets[1:3], function(x) { eval(parse(text=x)) }))
  })
  #♥output$widget2 <- renderUI({
