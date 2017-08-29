@@ -78,6 +78,8 @@ shinyServer(function(input, output, session) {
    updateSelectInput(session, 'ycol', choices = names(df), selected=names(df)[3])
    updateSelectInput(session, 'ccol', choices = names(df))
    updateSelectInput(session, 'dcol', choices = names(df))
+   updateSelectInput(session, 'colcol', choices = names(df))
+   updateSelectInput(session, 'axcol', choices = names(res))
   })
   
   return(df)
@@ -109,6 +111,15 @@ shinyServer(function(input, output, session) {
  dCol <- reactive ({
   input$dcol
  })
+ 
+ colCol <- reactive ({
+  input$colcol
+ })
+ 
+ axCol <- reactive ({
+  input$axcol
+ })
+ 
  #output$hist <- renderPlotly({
  #his <- df()
  #xCol <- xCol()
@@ -204,10 +215,6 @@ shinyServer(function(input, output, session) {
  output$perp <- renderUI({
   if(input$tsne_checkbox == TRUE)
    perp = sliderInput('perp', 'Perplexity', min=1, max=100, value = 30)
- })
- output$dim <- renderUI({
-  if(input$tsne_checkbox == TRUE)
-   sliderInput('dim', 'Dimensions', min=2, max=100, value = 2)
  })
  output$alg <- renderUI({
   if(input$kmeans_checkbox == TRUE)
@@ -309,7 +316,7 @@ shinyServer(function(input, output, session) {
   
   nplr_plot <- geom_line(data = nplr_df, aes(x,y, colour = "NPLR"), show.legend = TRUE, size = 0.75)
   nls_plot <- geom_line(data = nls_df , aes(log10(x), y, colour = "NLS"), show.legend = TRUE, size = 0.75)
-  
+  browser()
   if(input$nplr_checkbox ==TRUE) {
    plot <- plot + nplr_plot}
   if(input$nls_checkbox == TRUE) {
@@ -424,17 +431,24 @@ shinyServer(function(input, output, session) {
    return(NULL)
   dCol <- dCol()
   dat <- df()
+  colCol <- colCol()
   dt <- unique(dat)
   lst <- lapply(dt[dCol], function(x) (x-min(x))/(max(x)-min(x)))
-  
+  cc <- as.factor(dat[[colCol]])
   df <- data.frame()
   
   res <- rbind(df, lst)
-  tsne <- Rtsne(res, dims = input$dim, perplexity=input$perp, verbose=TRUE, max_iter = 500)
+  tsne <- Rtsne(res, dims = as.numeric(input$dim), perplexity=input$perp, verbose=TRUE, max_iter = 500, check_duplicates = FALSE)
+  if(input$dim == 2) {
   tsne_plot <- data.frame(x = tsne$Y[,1], y = tsne$Y[,2])
-  tsnep <- ggplot(tsne_plot) + geom_point(aes(x=x, y = y, color = dt[[input$zcol]])) + labs(color = input$zcol, x = "X", y = "Y")
+  tsnep <- ggplot(tsne_plot) + geom_point(aes(x=x, y = y, color = dt[[colCol]])) + labs(color = colCol, x = "X", y = "Y")
   tsnep <- ggplotly(tsnep)
-  
+  }
+  if(input$dim == 3) {
+   tsne_plot <- data.frame(x = tsne$Y[,1], y = tsne$Y[,2], z = tsne$Y[,3])
+   tsnep <- plot_ly(tsne_plot, x = ~tsne$Y[,1], y = ~tsne$Y[,2], z = ~tsne$Y[,3], color = ~cc, colors = c('#BF382A', '#0C4B8E'), width = NULL, height = "400px") %>%
+   add_markers() %>% layout(scene = list(xaxis = list(title = "X"), yaxis = list(title = "Y"), zaxis = list(title = "Z")))
+  }
   tsnep$x$layout$width <- NULL
   tsnep$x$layout$height <- NULL
   tsnep$width <- NULL
@@ -448,25 +462,24 @@ shinyServer(function(input, output, session) {
   if(is.null(df()))
    return(NULL)
   dCol <- dCol()
-  compoundCol <- compoundCol()
+  colCol <- colCol()
   dat <- df()
-  names(dat)[names(dat) == compoundCol] <- "Compound"
-  compoundCol <- "Compound"
-  
+  cc <- as.factor(dat[[colCol]])
   lst <- lapply(dat[dCol], function(x) (x-min(x))/(max(x)-min(x)))
-  
   df <- data.frame()
-  
   res <- rbind(df, lst)
-  
-  pcap <- autoplot(prcomp(res), data = dat, colour = "Compound") + labs(color = input$zcol, x = "X", y = "Y")
-  pcap<- ggplotly(pcap)
-  
+  pc <- prcomp(res)
+  if(input$dim == 2) {
+   pcap <- ggplot(res) + geom_point(aes(x = pc$x[,1], y = pc$x[,2], color = dat[[colCol]])) + labs(color = colCol, x = "X", y = "Y")
+   pcap <- ggplotly(pcap)}
+  if(input$dim == 3) {
+   pcap <- plot_ly(res, x = ~pc$x[,1], y = ~pc$x[,2], z = ~pc$x[,3],color = ~cc, colors = c('#BF382A', '#0C4B8E'), width = NULL, height ="400px") %>%
+    add_markers() %>% layout(scene = list(xaxis = list(title = "X"), yaxis = list(title = "Y"), zaxis = list(title = "Z")))
+   }
   pcap$x$layout$width <- NULL
   pcap$x$layout$height <- NULL
   pcap$width <- NULL
   pcap$height <- NULL
-  
   if(input$pca_checkbox == TRUE) {
   pcap}
   
@@ -478,6 +491,7 @@ shinyServer(function(input, output, session) {
   if(is.null(df()))
    return(NULL)
   cCol <- cCol()
+  axCol <- axCol()
   dat <- df()
   dt <- unique(dat)
   lst <- lapply(dt[cCol], function(x) (x-min(x))/(max(x)-min(x)))
@@ -486,14 +500,15 @@ shinyServer(function(input, output, session) {
   
   res <- rbind(df, lst)
   
+  browser()
   kMeansResult = kmeans(res, centers = input$num, algorithm = input$alg)
   
-
   dd.col <- rainbow(length(as.numeric(levels(as.factor(kMeansResult$cluster)))))
-  
+  browser()
   names(dd.col) <- levels(as.factor(kMeansResult$cluster))
-  
-  kmeansp <- ggplot(res, aes(x=res[1], y = res[2], col = as.factor(kMeansResult$cluster))) + geom_point() + scale_color_brewer(palette="Dark2") +  labs(color = "Clusters", x = "X", y = "Y")
+
+  kmeansp <- ggplot(res, aes(x=dat[[axCol[1]]], y =dat[[axCol[2]]], col = as.factor(kMeansResult$cluster))) + geom_point() + scale_color_brewer(palette="Dark2") +  
+   labs(color = "Clusters", x = axCol[1], y = axCol[2])
   kmeansp <- ggplotly(kmeansp)
   
   kmeansp$x$layout$width <- NULL
@@ -521,7 +536,7 @@ shinyServer(function(input, output, session) {
   
   clusters <- hclust(dist(res[,-1]), method = input$met)
   clusterCut <- cutree(clusters, k = input$num)
-  
+  browser()
   hieclup <- ggplot(res, aes(res[2], res[3], col = as.factor(clusterCut))) + geom_point() + scale_color_brewer(palette="Dark2") + labs(color = "Clusters", x = "X", y = "Y")
   hieclup <- ggplotly(hieclup)
   
