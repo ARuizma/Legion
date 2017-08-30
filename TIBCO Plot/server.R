@@ -11,6 +11,7 @@ library(Rtsne)
 library(ggfortify)
 library(jsonlite)
 library(RColorBrewer)
+library(fpc)
 source("helpers.R")
 
 options(shiny.maxRequestSize = 30*1024^2)
@@ -79,7 +80,8 @@ shinyServer(function(input, output, session) {
    updateSelectInput(session, 'ccol', choices = names(df))
    updateSelectInput(session, 'dcol', choices = names(df))
    updateSelectInput(session, 'colcol', choices = names(df))
-   updateSelectInput(session, 'axcol', choices = names(res))
+   updateSelectInput(session, 'axcol', choices = names(df))
+   updateSelectInput(session, 'aycol', choices = names(df))
   })
   
   return(df)
@@ -118,6 +120,10 @@ shinyServer(function(input, output, session) {
  
  axCol <- reactive ({
   input$axcol
+ })
+ 
+ ayCol <- reactive ({
+  input$aycol
  })
  
  #output$hist <- renderPlotly({
@@ -222,7 +228,7 @@ shinyServer(function(input, output, session) {
  })
  output$met <- renderUI({
   if(input$hieclu_checkbox == TRUE)
-  selectInput('met', 'Method', c("war.D", "war.D2", "single", "complete", "average", "mcquitty", "median", "centroid"), "complete")
+  selectInput('met', 'Method', c("single", "complete", "average", "mcquitty", "median", "centroid"), "complete")
  })
  #PLOT####
  
@@ -316,7 +322,6 @@ shinyServer(function(input, output, session) {
   
   nplr_plot <- geom_line(data = nplr_df, aes(x,y, colour = "NPLR"), show.legend = TRUE, size = 0.75)
   nls_plot <- geom_line(data = nls_df , aes(log10(x), y, colour = "NLS"), show.legend = TRUE, size = 0.75)
-  browser()
   if(input$nplr_checkbox ==TRUE) {
    plot <- plot + nplr_plot}
   if(input$nls_checkbox == TRUE) {
@@ -408,7 +413,7 @@ shinyServer(function(input, output, session) {
   
   mySummary.nls <- fit.parameters.nls
   
-  mySummary.nplr[,4:9] <- round(mySummary.nplr[,4:9], 4) 
+  mySummary.nplr[,4:9] <- round(mySummary.nplr[,4:9], 4)
   
   mySummary.nls[,4:9] <- round(mySummary.nls[,4:9], 4) 
   
@@ -421,7 +426,8 @@ shinyServer(function(input, output, session) {
   if((input$nls_checkbox == TRUE) & (input$nplr_checkbox == TRUE)) {
    mySummary <- do.call("rbind",list(mySummary.nplr, mySummary.nls))}
   
-  try(DT::datatable(mySummary, options = list(scrollX = TRUE)))
+  try(DT::datatable(mySummary, options = list(scrollX = TRUE, order = list(list(8, 'desc')))))
+  
  })
  
  #DIMENSIONALITYREDUCTION####
@@ -473,7 +479,7 @@ shinyServer(function(input, output, session) {
    pcap <- ggplot(res) + geom_point(aes(x = pc$x[,1], y = pc$x[,2], color = dat[[colCol]])) + labs(color = colCol, x = "X", y = "Y")
    pcap <- ggplotly(pcap)}
   if(input$dim == 3) {
-   pcap <- plot_ly(res, x = ~pc$x[,1], y = ~pc$x[,2], z = ~pc$x[,3],color = ~cc, colors = c('#BF382A', '#0C4B8E'), width = NULL, height ="400px") %>%
+   pcap <- plot_ly(res, x = ~pc$x[,1], y = ~pc$x[,2], z = ~pc$x[,3],color = ~cc, colors = c('#BF382A', '#0C4B8E'), width = NULL) %>%
     add_markers() %>% layout(scene = list(xaxis = list(title = "X"), yaxis = list(title = "Y"), zaxis = list(title = "Z")))
    }
   pcap$x$layout$width <- NULL
@@ -492,6 +498,7 @@ shinyServer(function(input, output, session) {
    return(NULL)
   cCol <- cCol()
   axCol <- axCol()
+  ayCol <- ayCol()
   dat <- df()
   dt <- unique(dat)
   lst <- lapply(dt[cCol], function(x) (x-min(x))/(max(x)-min(x)))
@@ -500,15 +507,15 @@ shinyServer(function(input, output, session) {
   
   res <- rbind(df, lst)
   
-  browser()
+  
   kMeansResult = kmeans(res, centers = input$num, algorithm = input$alg)
   
   dd.col <- rainbow(length(as.numeric(levels(as.factor(kMeansResult$cluster)))))
-  browser()
+  
   names(dd.col) <- levels(as.factor(kMeansResult$cluster))
 
-  kmeansp <- ggplot(res, aes(x=dat[[axCol[1]]], y =dat[[axCol[2]]], col = as.factor(kMeansResult$cluster))) + geom_point() + scale_color_brewer(palette="Dark2") +  
-   labs(color = "Clusters", x = axCol[1], y = axCol[2])
+  kmeansp <- ggplot(res, aes(x=dat[[axCol]], y =dat[[ayCol]], col = as.factor(kMeansResult$cluster))) + geom_point() + scale_color_brewer(palette="Dark2") +  
+  labs(color = "Clusters", x = axCol, y = ayCol)
   kmeansp <- ggplotly(kmeansp)
   
   kmeansp$x$layout$width <- NULL
@@ -527,7 +534,8 @@ shinyServer(function(input, output, session) {
    return(NULL)
   cCol <- cCol()
   dat <- df()
-  
+  axCol <- axCol()
+  ayCol <- ayCol()
   lst <- lapply(dat[cCol], function(x) (x-min(x))/(max(x)-min(x)))
   
   df <- data.frame(dat[[input$zcol]])
@@ -536,8 +544,8 @@ shinyServer(function(input, output, session) {
   
   clusters <- hclust(dist(res[,-1]), method = input$met)
   clusterCut <- cutree(clusters, k = input$num)
-  browser()
-  hieclup <- ggplot(res, aes(res[2], res[3], col = as.factor(clusterCut))) + geom_point() + scale_color_brewer(palette="Dark2") + labs(color = "Clusters", x = "X", y = "Y")
+  
+  hieclup <- ggplot(res, aes(x = dat[[axCol]], y = dat[[ayCol]], col = as.factor(clusterCut))) + geom_point() + scale_color_brewer(palette="Dark2") + labs(color = "Clusters", x = axCol, y = ayCol)
   hieclup <- ggplotly(hieclup)
   
   hieclup $x$layout$width <- NULL
@@ -548,5 +556,36 @@ shinyServer(function(input, output, session) {
   if(input$hieclu_checkbox == TRUE) {
    hieclup} 
   
+ })
+ 
+ output$sumclus <- DT::renderDataTable({
+  if(is.null(df()))
+   return(NULL)
+  dat <- df()
+  cCol <- cCol()
+  lst <- lapply(dat[cCol], function(x) (x-min(x))/(max(x)-min(x)))
+  df <- data.frame()
+  res <- rbind(df, lst)
+  fit1 <- kmeans(res, centers = input$num, algorithm = input$alg)
+  df2 <- data.frame(dat[[input$zcol]])
+  res2 <- cbind(df2, lst)
+  d <- dist(res2, method = "euclidean")
+  clusters <- hclust(dist(res2[,-1]), method = input$met)
+  clusterCut <- cutree(clusters, k = input$num)
+  l <- cluster.stats(d, fit1$cluster, clusterCut)
+  fit.parameters.clus <- data.frame(Diameter=numeric(),
+                                    Averaged=numeric(),
+                                    Mediand=numeric(),
+                                    Withcluss=numeric(),
+                                    Entropy=numeric(),
+                                    stringsAsFactors=FALSE)
+  
+  val.parameters<-data.frame(l$diameter, l$average.distance, l$median.distance, l$within.cluster.ss, l$entropy,stringsAsFactors=FALSE)
+  colnames(val.parameters)<-c("Diameter", "Average Distance","Median Distance","Within Cluster SS","Entropy")
+  fit.parameters.clus<-rbind(fit.parameters.clus, val.parameters)
+  mySummary.clus <- fit.parameters.clus
+  mySummary.clus[,] <- round(mySummary.clus[,], 4)
+  if((input$kmeans_checkbox == TRUE) & (input$hieclu_checkbox == TRUE)) {
+  try(DT::datatable(mySummary.clus, options = list(scrollX = TRUE)))}
  })
 })#END

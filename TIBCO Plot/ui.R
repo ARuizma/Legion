@@ -71,9 +71,6 @@ shinyUI(
            
                    #CONTENT####
             column(width = 10, 
-                   box(title = "Data", width = NULL,
-                       
-
                    box(
                     title = "Data Content",
                     collapsible = TRUE,
@@ -84,7 +81,7 @@ shinyUI(
              #collapsible = TRUE,
              #collapsed = FALSE,
              #plotlyOutput("hist"), width = NULL)
-           )))),
+           ))),
    
  #CURVEFITTING####
    
@@ -153,7 +150,8 @@ tabItem(tabName = "clustering",
          column(width = 2, 
                 box(title = "Settings", width = NULL,
                  selectInput('ccol', 'Select Data', choices = "Pending Upload", selectize = TRUE, multiple = TRUE),
-                 selectInput('axcol', 'Select Axes', choices = "Pending Upload", selectize = TRUE, multiple = TRUE),
+                 selectInput('axcol', 'X axis', choices = "Pending Upload"),
+                 selectInput('aycol', 'Y axis', choices = "Pending Upload"),
                  sliderInput('num', 'Clusters', min = 2, max = 10, value = 3),
                  checkboxInput("kmeans_checkbox", label = "K-means", value = FALSE),
                  uiOutput('alg'),
@@ -170,7 +168,13 @@ tabItem(tabName = "clustering",
           title = "Hierarchical Clustering",
           collapsible = TRUE,
           collapsed = FALSE,
-          plotlyOutput("hieclu"), width = 5)
+          plotlyOutput("hieclu"), width = 5),
+
+         box(
+          title = "Summary",
+          collapsible = TRUE,
+          collapsed = FALSE,
+          DT::dataTableOutput("sumclus"), width = 10)
          
         ))
 
