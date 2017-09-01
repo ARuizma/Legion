@@ -8,61 +8,13 @@ library(DT)
 library(minpack.lm)
 library(plotly)
 library(Rtsne)
-library(ggfortify)
-library(jsonlite)
 library(RColorBrewer)
 library(fpc)
 source("helpers.R")
 
 options(shiny.maxRequestSize = 30*1024^2)
-
-parse_widgets <- function(conf_path) {
- 
- my_list_of_widgets <- fromJSON(conf_path)
- 
- id_of_widgets <- names(my_list_of_widgets)
- 
- list_of_tags <- c()
- 
- for (widget_id in id_of_widgets) {
-  
-  widget_parameters <- names(my_list_of_widgets[[widget_id]])
-  
-  list <- c()
-  
-  for (key in widget_parameters) {
-   
-   if(key != "type") {
-    
-    value = my_list_of_widgets[[widget_id]][[key]]
-    if (grepl('%LIST_SEPARATOR%', value)) {
-     value = gsub('%LIST_SEPARATOR%', "', '", value)
-     value = paste('c(\'', value, '\')', sep = '')
-    }
-    
-    list <- c(list, paste(key, value, sep = ' = '))
-   }
-  }
-  list <- c(list, paste("'inputId'", paste('\'', widget_id, '\'', sep = ''), sep = ' = '))
-  
-  tag = paste(my_list_of_widgets[[widget_id]][['type']], '(', sep = '')
-  tag_key_values = paste0(list, collapse = ', ')
-  tag = paste(tag, tag_key_values, ')', sep = '')
-  
-  list_of_tags <- c(list_of_tags, tag)
- }
- 
- list_of_tags
- 
-}
-
 shinyServer(function(input, output, session) {
- 
- configuration_path <- "C:\\Users\\Capitán Tomate\\Documents\\GitHub\\Atlassian\\TIBCO Plot\\conf.json";
- widgets <- parse_widgets(conf_path = configuration_path)
- output$widget <- renderUI({
-  tagList(lapply(widgets, function(x) { eval(parse(text=x)) }))
- })
+
  
  #########################GENERAL#########################################################
  
@@ -229,6 +181,10 @@ shinyServer(function(input, output, session) {
  output$met <- renderUI({
   if(input$hieclu_checkbox == TRUE)
   selectInput('met', 'Method', c("single", "complete", "average", "mcquitty", "median", "centroid"), "complete")
+ })
+ output$grad <- renderUI({
+  if(input$dim == 3)
+   checkboxInput('grad', 'Show as Gradient', value = FALSE)
  })
  #PLOT####
  
@@ -426,9 +382,97 @@ shinyServer(function(input, output, session) {
   if((input$nls_checkbox == TRUE) & (input$nplr_checkbox == TRUE)) {
    mySummary <- do.call("rbind",list(mySummary.nplr, mySummary.nls))}
   
-  try(DT::datatable(mySummary, options = list(scrollX = TRUE, order = list(list(8, 'desc')))))
+  mySummarydef <- try(DT::datatable(mySummary, options = list(scrollX = TRUE, order = list(list(8, 'desc')))))
   
  })
+ 
+ output$down <- downloadHandler('Curve-Fitting-Summary.csv', 
+   content <- function(file) {
+    if(is.null(df()))
+     return(NULL)
+    
+    dat <- df()
+    df2 <- df2()
+    dat2 <- dat2()
+    compoundCol <- compoundCol()
+    xCol <- xCol()
+    yCol <- yCol()
+    xCol <- "x"
+    yCol <- "y"
+    compoundCol <- "Compound"
+    r2<-0
+    fit.parameters.nplr <- data.frame(Compound=character(),
+                                      Feature=character(),
+                                      min=numeric(),
+                                      max=numeric(),
+                                      Inflexion=numeric(),
+                                      Hill=numeric(),
+                                      r2=numeric(),
+                                      stringsAsFactors=FALSE) 
+    
+    fit.parameters.nls <- data.frame(Compound=character(),
+                                     Feature=character(),
+                                     min=numeric(),
+                                     max=numeric(),
+                                     Inflexion=numeric(),
+                                     Hill=numeric(),
+                                     r2=numeric(),
+                                     stringsAsFactors=FALSE) 
+    
+    if(is.null(df2))
+     return(NULL)
+    mySummary = list()
+    
+    try(for (i in df2) {
+     sumi <- summary.nplr(i)
+     
+     j <- as.character(sumi$value[["xInfl"]])
+     
+     j <- as.numeric(j)
+     
+     expxinfl <- 10^j
+     
+     val.parameters<- data.frame("NPLR", "", input$ycol, sumi$value[["params.bottom"]], sumi$value[["params.top"]],
+                                 sumi$value[["xInfl"]], sumi$value[["params.scal"]], sumi$value[["weightedGOF"]], expxinfl ,stringsAsFactors=FALSE)
+     colnames(val.parameters)<-c("Method","Compound","Feature","min","max","LoggedX50","Hill","r2","Inflexion")
+     fit.parameters.nplr<-rbind(fit.parameters.nplr, val.parameters)
+    })
+    try(for(i in dat2) {
+     
+     sp_i<- pki.app.s4s.get.starting.parameters(i)
+     
+     fit <- pki.app.s4s.CurveFitting.Fit.Logistic(i, sp_i)
+     
+     val.parameters<-data.frame("NLS", unique(i[[compoundCol]]),input$ycol,
+                                fit$B,fit$A,log10(fit$C),fit$D,fit$RSquared,fit$C, stringsAsFactors=FALSE)
+     colnames(val.parameters)<-c("Method", "Compound","Feature","min","max","LoggedX50","Hill","r2","Inflexion")
+     fit.parameters.nls<-rbind(fit.parameters.nls, val.parameters)
+    })
+    
+    fit.parameters.nplr$Compound <- as.factor(names(df2))
+    fit.parameters.nplr[,c(4:8)]<- sapply(fit.parameters.nplr[,c(4:8)], as.character)
+    fit.parameters.nplr[,c(4:8)]<- sapply(fit.parameters.nplr[,c(4:8)], as.numeric)
+    fit.parameters.nplr[,c(4:8)]<- sapply(fit.parameters.nplr[,c(4:8)], as.numeric)
+    
+    mySummary.nplr<-fit.parameters.nplr
+    
+    mySummary.nls <- fit.parameters.nls
+    
+    mySummary.nplr[,4:9] <- round(mySummary.nplr[,4:9], 4)
+    
+    mySummary.nls[,4:9] <- round(mySummary.nls[,4:9], 4) 
+    
+    mySummary <- data.frame(stringsAsFactors = FALSE)
+    
+    if(input$nplr_checkbox ==TRUE) {
+     mySummary <- rbind(mySummary.nplr)}
+    if(input$nls_checkbox == TRUE) {
+     mySummary <- rbind(mySummary.nls)}
+    if((input$nls_checkbox == TRUE) & (input$nplr_checkbox == TRUE)) {
+     mySummary <- do.call("rbind",list(mySummary.nplr, mySummary.nls))}
+    
+    mySummary
+   write.csv(mySummary, file, sep ='', row.names = FALSE)})
  
  #DIMENSIONALITYREDUCTION####
  
@@ -452,8 +496,12 @@ shinyServer(function(input, output, session) {
   }
   if(input$dim == 3) {
    tsne_plot <- data.frame(x = tsne$Y[,1], y = tsne$Y[,2], z = tsne$Y[,3])
-   tsnep <- plot_ly(tsne_plot, x = ~tsne$Y[,1], y = ~tsne$Y[,2], z = ~tsne$Y[,3], color = ~cc, colors = c('#BF382A', '#0C4B8E'), width = NULL, height = "400px") %>%
-   add_markers() %>% layout(scene = list(xaxis = list(title = "X"), yaxis = list(title = "Y"), zaxis = list(title = "Z")))
+   if(input$grad == TRUE) {
+   tsnep <- plot_ly(tsne_plot, x = ~tsne$Y[,1], y = ~tsne$Y[,2], z = ~tsne$Y[,3], marker = list(color = ~cc, colorscale = c('#BF382A', '#0C4B8E'), showscale = TRUE), width = NULL) %>%
+   add_markers() %>% layout(scene = list(xaxis = list(title = "X"), yaxis = list(title = "Y"), zaxis = list(title = "Z"))) }
+   if(input$grad == FALSE) {
+   tsnep <- plot_ly(tsne_plot, x = ~tsne$Y[,1], y = ~tsne$Y[,2], z = ~tsne$Y[,3], color = ~cc, colors = c('#BF382A', '#0C4B8E'), width = NULL) %>%
+    add_markers() %>% layout(scene = list(xaxis = list(title = "X"), yaxis = list(title = "Y"), zaxis = list(title = "Z")))}
   }
   tsnep$x$layout$width <- NULL
   tsnep$x$layout$height <- NULL
@@ -479,8 +527,12 @@ shinyServer(function(input, output, session) {
    pcap <- ggplot(res) + geom_point(aes(x = pc$x[,1], y = pc$x[,2], color = dat[[colCol]])) + labs(color = colCol, x = "X", y = "Y")
    pcap <- ggplotly(pcap)}
   if(input$dim == 3) {
-   pcap <- plot_ly(res, x = ~pc$x[,1], y = ~pc$x[,2], z = ~pc$x[,3],color = ~cc, colors = c('#BF382A', '#0C4B8E'), width = NULL) %>%
-    add_markers() %>% layout(scene = list(xaxis = list(title = "X"), yaxis = list(title = "Y"), zaxis = list(title = "Z")))
+   if(input$grad == FALSE) {
+   pcap <- plot_ly(res, x = ~pc$x[,1], y = ~pc$x[,2], z = ~pc$x[,3], color = ~cc, colors = c('#BF382A', '#0C4B8E'), width = NULL) %>%
+    add_markers() %>% layout(scene = list(xaxis = list(title = "X"), yaxis = list(title = "Y"), zaxis = list(title = "Z")))}
+   if(input$grad == TRUE) {
+   pcap <- plot_ly(res, x = ~pc$x[,1], y = ~pc$x[,2], z = ~pc$x[,3], marker = list(color = ~cc, colorscale = c('#BF382A', '#0C4B8E'), showscale = TRUE), width = NULL) %>%
+    add_markers() %>% layout(scene = list(xaxis = list(title = "X"), yaxis = list(title = "Y"), zaxis = list(title = "Z")))}
    }
   pcap$x$layout$width <- NULL
   pcap$x$layout$height <- NULL
@@ -588,4 +640,36 @@ shinyServer(function(input, output, session) {
   if((input$kmeans_checkbox == TRUE) & (input$hieclu_checkbox == TRUE)) {
   try(DT::datatable(mySummary.clus, options = list(scrollX = TRUE)))}
  })
+ 
+ output$down2 <- downloadHandler('Clustering-Summary.csv', 
+                                content <- function(file) {
+                                 if(is.null(df()))
+                                  return(NULL)
+                                 dat <- df()
+                                 cCol <- cCol()
+                                 lst <- lapply(dat[cCol], function(x) (x-min(x))/(max(x)-min(x)))
+                                 df <- data.frame()
+                                 res <- rbind(df, lst)
+                                 fit1 <- kmeans(res, centers = input$num, algorithm = input$alg)
+                                 df2 <- data.frame(dat[[input$zcol]])
+                                 res2 <- cbind(df2, lst)
+                                 d <- dist(res2, method = "euclidean")
+                                 clusters <- hclust(dist(res2[,-1]), method = input$met)
+                                 clusterCut <- cutree(clusters, k = input$num)
+                                 l <- cluster.stats(d, fit1$cluster, clusterCut)
+                                 fit.parameters.clus <- data.frame(Diameter=numeric(),
+                                                                   Averaged=numeric(),
+                                                                   Mediand=numeric(),
+                                                                   Withcluss=numeric(),
+                                                                   Entropy=numeric(),
+                                                                   stringsAsFactors=FALSE)
+                                 
+                                 val.parameters<-data.frame(l$diameter, l$average.distance, l$median.distance, l$within.cluster.ss, l$entropy,stringsAsFactors=FALSE)
+                                 colnames(val.parameters)<-c("Diameter", "Average Distance","Median Distance","Within Cluster SS","Entropy")
+                                 fit.parameters.clus<-rbind(fit.parameters.clus, val.parameters)
+                                 mySummary.clus <- fit.parameters.clus
+                                 mySummary.clus[,] <- round(mySummary.clus[,], 4)
+                                 
+                                 
+                                 write.csv(mySummary.clus, file, sep ='', row.names = FALSE)})
 })#END

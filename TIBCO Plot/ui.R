@@ -3,16 +3,16 @@ library(shinydashboard)
 library(DT)
 library(plotly)
 
-shinyUI(
+shinyUI <- tagList(
  
  dashboardPage(skin = "green", 
  
- #HeaderPanel####
+#HEADERPANEL####
   
   dashboardHeader(title = "Legion"),
    #h2("We are Legion, for we are many")
   
- #SIDEBAR####
+#SIDEBAR####
   
   
   dashboardSidebar(
@@ -30,7 +30,7 @@ shinyUI(
    
 )),
 
- #MainPanel####
+#MAINPANEL####
  
  dashboardBody(
   tags$style(type="text/css",
@@ -45,7 +45,7 @@ shinyUI(
                           box(title = "File Information", side = "right",
                                  id = "tabset1", width = NULL,
                                  
-                                 #FILETAB####
+                                 #FILETAB#
                                   
                                   
                                    fileInput('file1', 'Choose File with .csv, .tsv, .txt format',
@@ -69,7 +69,7 @@ shinyUI(
                                  )
                           ),
            
-                   #CONTENT####
+                   #CONTENT#
             column(width = 10, 
                    box(
                     title = "Data Content",
@@ -83,12 +83,12 @@ shinyUI(
              #plotlyOutput("hist"), width = NULL)
            ))),
    
- #CURVEFITTING####
+#CURVEFITTING####
    
   tabItem(tabName = "curvefitting", 
           fluidRow(
            column(width = 2,
-                  #SETTINGSTAB####
+                  #SETTINGSTAB#
                   box(title = "Settings",
                           width = NULL,
                             checkboxInput("nplr_checkbox", label = "NPLR", value = FALSE),
@@ -96,23 +96,22 @@ shinyUI(
                             checkboxInput("nls_checkbox", label = "NLS", value = FALSE),
                             selectInput('zcol', 'Compounds', choices = "Pending Upload"),
                             selectInput('xcol', 'Concentration', choices = "Pending Upload"),
-                            selectInput('ycol', 'Feature', choices = "Pending Upload"))),
+                            selectInput('ycol', 'Feature', choices = "Pending Upload"),
+                            downloadButton('down', 'Download Summary', class = 'text-center', style = 'width:100%;'))),
  column(width = 10, 
  box(title = "Visualization", width = NULL,
- #NPLR####
-  #PLOT####
+  #PLOT#
    box(
    title = "Plot",
    collapsible = TRUE,
    collapsed = FALSE,
    plotlyOutput("plot"), width = NULL),
-  #SUMMARY####
+  #SUMMARY#
   box(
    title = "Summary",
    collapsible = TRUE,
    collapsed = FALSE,
-   DT::dataTableOutput("summary"), width = NULL)
- )))),
+   DT::dataTableOutput("summary"), width = NULL))))),
 
 #DIMENSIONALITYREDUCTION####
 
@@ -125,6 +124,7 @@ tabItem(tabName = "dimred",
                  selectInput('dcol', 'Select Data', choices = "Pending Upload", selectize = TRUE, multiple = TRUE),
                  selectInput('colcol', 'Color By', choices = "Pending Upload"),
                  radioButtons('dim', 'Dimension Visualization', choices = list("2D" = 2, "3D" = 3), selected = 2),
+                 uiOutput('grad'),
                  checkboxInput("tsne_checkbox", label = "TSNE", value = FALSE),
                  uiOutput('perp'),
                  checkboxInput("pca_checkbox", label = "PCA", value = FALSE)
@@ -145,7 +145,6 @@ tabItem(tabName = "dimred",
 
 #CLUSTERING####
 tabItem(tabName = "clustering", 
-        
         fluidRow(
          column(width = 2, 
                 box(title = "Settings", width = NULL,
@@ -156,8 +155,9 @@ tabItem(tabName = "clustering",
                  checkboxInput("kmeans_checkbox", label = "K-means", value = FALSE),
                  uiOutput('alg'),
                  checkboxInput("hieclu_checkbox", label = "Hierarchical Clustering", value = FALSE),
-                 uiOutput('met')
-)),
+                 uiOutput('met'),
+                 downloadButton('down2', 'Download Summary', style = 'width:100%;'))),
+                 
          box(
           title = "K-Means",
           collapsible = TRUE,
@@ -174,9 +174,21 @@ tabItem(tabName = "clustering",
           title = "Summary",
           collapsible = TRUE,
           collapsed = FALSE,
-          DT::dataTableOutput("sumclus"), width = 10)
-         
-        ))
-
-))
-))#END
+          DT::dataTableOutput("sumclus"),width = 10)))))),
+#FOOTER####
+ 
+tags$footer(align = "center", style = ("background-color: transparent; color: black;
+                                       bottom:0; width:100%; 
+                                       padding: 10px;"),
+withTags(
+ div(class="row",
+     div(class="col-sm-12 footer",
+         span(class="calligraffitti", "Designed By"),
+         span(id="github",
+              a("Andrés Ruiz Marín",
+                href="https://github.com/Aruma27/Bioenterprise-Perkin-Elmer",
+                target="_top")),
+         span(class="calligraffitti", "In Colaboration with"),
+         span(class="lato", "Oscar Mora"),
+         span(HTML("&copy;2017. "))))))
+)#END
