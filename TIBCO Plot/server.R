@@ -13,8 +13,54 @@ library(fpc)
 source("helpers.R")
 
 options(shiny.maxRequestSize = 30*1024^2)
+
+parse_widgets <- function(conf_path) {
+ 
+ my_list_of_widgets <- fromJSON(conf_path)
+ 
+ id_of_widgets <- names(my_list_of_widgets)
+ 
+ list_of_tags <- c()
+ 
+ for (widget_id in id_of_widgets) {
+  
+  widget_parameters <- names(my_list_of_widgets[[widget_id]])
+  
+  list <- c()
+  
+  for (key in widget_parameters) {
+   
+   if(key != "type") {
+    
+    value = my_list_of_widgets[[widget_id]][[key]]
+    if (grepl('%LIST_SEPARATOR%', value)) {
+     value = gsub('%LIST_SEPARATOR%', "', '", value)
+     value = paste('c(\'', value, '\')', sep = '')
+    }
+    
+    list <- c(list, paste(key, value, sep = ' = '))
+   }
+  }
+  list <- c(list, paste("'inputId'", paste('\'', widget_id, '\'', sep = ''), sep = ' = '))
+  
+  tag = paste(my_list_of_widgets[[widget_id]][['type']], '(', sep = '')
+  tag_key_values = paste0(list, collapse = ', ')
+  tag = paste(tag, tag_key_values, ')', sep = '')
+  
+  list_of_tags <- c(list_of_tags, tag)
+ }
+ 
+ list_of_tags
+ 
+}
+
 shinyServer(function(input, output, session) {
 
+ configuration_path <- "C:\\Users\\Capitán Tomate\\Documents\\GitHub\\Atlassian\\TIBCO Plot\\conf.json";
+ widgets <- parse_widgets(conf_path = configuration_path)
+ output$widget <- renderUI({
+  tagList(lapply(widgets, function(x) { eval(parse(text=x)) }))
+ })
  
  #########################GENERAL#########################################################
  
