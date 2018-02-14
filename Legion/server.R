@@ -10,6 +10,7 @@ library(plotly)
 library(Rtsne)
 library(RColorBrewer)
 library(fpc)
+library(jsonlite)
 source("helpers.R")
 
 options(shiny.maxRequestSize = 30*1024^2)
@@ -56,11 +57,11 @@ parse_widgets <- function(conf_path) {
 
 shinyServer(function(input, output, session) {
 
- configuration_path <- "C:\\Users\\Capitán Tomate\\Documents\\GitHub\\Atlassian\\TIBCO Plot\\conf.json";
- widgets <- parse_widgets(conf_path = configuration_path)
- output$widget <- renderUI({
-  tagList(lapply(widgets, function(x) { eval(parse(text=x)) }))
- })
+ #configuration_path <- "C:\\Users\\Capitán Tomate\\Documents\\GitHub\\Atlassian\\TIBCO Plot\\conf.json";
+ #widgets <- parse_widgets(conf_path = configuration_path)
+ #output$widget <- renderUI({
+  #tagList(lapply(widgets, function(x) { eval(parse(text=x)) }))
+ #})
  
  #########################GENERAL#########################################################
  
